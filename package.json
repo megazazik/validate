@@ -1,5 +1,5 @@
 {
-  "name": "z-validate",
+  "name": "@megazazik/validate",
   "version": "0.1.0",
   "description": "Validate objects via simple functions",
   "main": "dist/index.js",
@@ -35,9 +35,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/megazazik/z-validate.git"
+    "url": "git+https://github.com/megazazik/@megazazik/validate.git"
   },
-  "homepage": "https://github.com/megazazik/z-validate",
+  "homepage": "https://github.com/megazazik/@megazazik/validate",
   "files": [
     "dist",
     "dist-es",

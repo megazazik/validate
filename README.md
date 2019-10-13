@@ -1,6 +1,6 @@
-# z-validate
+# @megazazik/validate
 
-![npm](https://img.shields.io/npm/v/z-validate)
+![npm](https://img.shields.io/npm/v/@megazazik/validate)
 
 Library to validate values via simple functions.
 
@@ -9,7 +9,7 @@ Library to validate values via simple functions.
 `init` function creates a validation scheme. And then you set validation rules via `rules` function.
 
 ```js
-import { init } from "z-validate";
+import { init } from "@megazazik/validate";
 
 const myStringScheme = init().rules({
   required: str => !str,
@@ -37,7 +37,7 @@ myStringScheme.validate("123456789");
 Validation scheme can be nested.
 
 ```js
-import { init } from "z-validate";
+import { init } from "@megazazik/validate";
 
 const myStringScheme = init().rules({
   required: str => !str,
@@ -76,7 +76,7 @@ myObjectScheme.validate({ value: "123456789" });
 If you have an object with a dynamic array of values you can validate them via the `list` function.
 
 ```js
-import { init, list } from "z-validate";
+import { init, list } from "@megazazik/validate";
 
 const myStringScheme = init().rules({
   required: str => !str,
@@ -105,7 +105,7 @@ console.log(errors.values);
 If you have an object with a dynamic map of values you can validate them via the `map` function.
 
 ```js
-import { init, map } from "z-validate";
+import { init, map } from "@megazazik/validate";
 
 const myStringScheme = init().rules({
   required: str => !str,
@@ -133,7 +133,7 @@ console.log(errors.values);
 By default the `validate` function returns the first error of scheme rules. In this example the `minLenght` rule will not be checked if the `required` rule returns `true`.
 
 ```js
-import { init } from "z-validate";
+import { init } from "@megazazik/validate";
 
 const myStringScheme = init().rules({
   required: str => !str,
@@ -144,7 +144,7 @@ const myStringScheme = init().rules({
 If you need to receive all errors of scheme you can use the `allOf` function. Then all rules will be checked and all errors will be returned.
 
 ```js
-import { init, allOf } from "z-validate";
+import { init, allOf } from "@megazazik/validate";
 
 const myStringScheme = init().rules({
   ...allOf({
