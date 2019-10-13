@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+ARGS=""
+while [ -n "$1" ]; do
+	case "$1" in
+	-d)
+		DEFAULT="$2"
+		shift
+		shift
+		;;
+	-c)
+		COMMAND="$2"
+		shift
+		shift
+		;;
+	*)
+		ARGS="$ARGS $1"
+		shift
+		;;
+	esac
+done
+
+if [ -z "$ARGS" ]; then
+	RESULT="npm run $COMMAND $DEFAULT"
+else
+	RESULT="npm run $COMMAND $ARGS"
+fi
+
+$RESULT

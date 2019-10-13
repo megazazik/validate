@@ -4,7 +4,12 @@
   "description": "Validate objects via simple functions",
   "main": "dist/index.js",
   "scripts": {
-    "test": "test"
+    "build": "tsc && tsc -p tsconfig.es.json",
+    "version": "npm run build && conventional-changelog -p angular -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
+    "commit": "git-cz",
+    "test": "sh default -d src/**/*.spec.* -c tape",
+    "tape": "ts-node node_modules/tape/bin/tape",
+    "test-w": "nodemon -e js,jsx,ts,tsx,json --exec npm run test"
   },
   "keywords": [
     "validate",
@@ -13,9 +18,28 @@
   "author": "lebedev.mv <lebedev.mv@tutu.ru>",
   "license": "MIT",
   "devDependencies": {
+    "@types/tape": "^4.2.33",
     "commitizen": "^4.0.3",
     "conventional-changelog-cli": "^2.0.25",
     "cz-conventional-changelog": "^3.0.2",
+    "tape": "^4.11.0",
+    "ts-node": "^8.4.1",
     "typescript": "^3.6.3"
-  }
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/megazazik/z-validate.git"
+  },
+  "homepage": "https://github.com/megazazik/z-validate",
+  "files": [
+    "dist",
+    "dist-es",
+    "CHANGELOG.md",
+    "README.md"
+  ]
 }

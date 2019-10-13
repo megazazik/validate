@@ -6,12 +6,11 @@
     "declaration": true,
     "moduleResolution": "node",
     "outDir": "./dist/",
-    "lib": ["es2015", "es5", "dom"],
-    "jsx": "react",
+    "lib": ["es2015", "es5"],
     "esModuleInterop": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": true
   },
-  "files": ["src/index.tsx"]
+  "files": ["src/index.ts"]
 }
