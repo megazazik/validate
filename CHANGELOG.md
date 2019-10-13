@@ -1,3 +1,12 @@
+## [0.1.2](http://github.com/megazazik/@megazazik/validate/compare/v0.1.1...v0.1.2) (2019-10-13)
+
+
+### Bug Fixes
+
+* **index:** fix result type ([04ba271](http://github.com/megazazik/@megazazik/validate/commit/04ba2713545995a5d9ec51e0825703af488623e7))
+
+
+
 ## [0.1.1](http://github.com/megazazik/@megazazik/validate/compare/v0.1.0...v0.1.1) (2019-10-13)
 
 
