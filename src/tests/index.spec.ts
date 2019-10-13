@@ -4,7 +4,7 @@ import { init, allOf, list, map } from "..";
 const required = <V = any>(data: V) => !data;
 
 test("validate. simple value", t => {
-  const scheme = init<string>().rules({
+  const scheme = init<string>().fullObjectRules({
     required,
     minLenght: v => v.length <= 8
   });
@@ -16,16 +16,45 @@ test("validate. simple value", t => {
   t.end();
 });
 
-test("validate. nested value", t => {
+test("validate. nested rules via scheme", t => {
   type T = { value: string };
 
-  const stringScheme = init<string>().rules({
+  const stringScheme = init<string>().fullObjectRules({
     required,
     minLenght: v => v.length <= 8
   });
 
-  const scheme = init<T>().children({
+  const scheme = init<T>().rules({
     value: stringScheme
+  });
+
+  t.deepEqual(
+    scheme.validate({ value: "wer" }).length,
+    0,
+    "Should have length property as an array"
+  );
+
+  t.deepEqual(scheme.validate({ value: "" }), {
+    value: [{ type: "required" }]
+  });
+
+  t.deepEqual(scheme.validate({ value: "sdfsf" }), {
+    value: [{ type: "minLenght" }]
+  });
+
+  t.deepEqual(scheme.validate({ value: "sdfsfsfsdfsdf" }), null);
+
+  t.end();
+});
+
+test("validate. nested rules", t => {
+  type T = { value: string };
+
+  const scheme = init<T>().rules({
+    value: {
+      required,
+      minLenght: v => v.length <= 8
+    }
   });
 
   t.deepEqual(
@@ -50,16 +79,16 @@ test("validate. nested value", t => {
 test("validate. nested value with own props", t => {
   type T = { value: string };
 
-  const stringScheme = init<string>().rules({
+  const stringScheme = init<string>().fullObjectRules({
     required,
     minLenght: v => v.length <= 8
   });
 
   const scheme = init<T>()
-    .children({
+    .rules({
       value: stringScheme
     })
-    .rules({
+    .fullObjectRules({
       valueRequired: v => !v.value,
       valueMinLength: v => v.value.length <= 6
     });
@@ -92,16 +121,16 @@ test("validate. nested value with own props", t => {
 test("validate. not boolean result", t => {
   type T = { value: string };
 
-  const stringScheme = init<string>().rules({
+  const stringScheme = init<string>().fullObjectRules({
     required: v => (v ? null : { text: "empty" }),
     minLenght: v => (v.length <= 8 ? "myerror" : null)
   });
 
   const scheme = init<T>()
-    .children({
+    .rules({
       value: stringScheme
     })
-    .rules({
+    .fullObjectRules({
       valueRequired: v => (!v.value ? "valueRequired" : false),
       valueMinLength: v => v.value.length <= 6
     });
@@ -132,7 +161,7 @@ test("validate. not boolean result", t => {
 });
 
 test("validate. all rules of list", t => {
-  const scheme = init<string>().rules({
+  const scheme = init<string>().fullObjectRules({
     required,
     ...allOf({
       minLenght: v => v.length <= 8,
@@ -154,12 +183,12 @@ test("validate. all rules of list", t => {
 test("validate. list of values", t => {
   type T = { value: string[] };
 
-  const stringScheme = init<string>().rules({
+  const stringScheme = init<string>().fullObjectRules({
     required: v => !v,
     minLenght: v => v.length <= 8
   });
 
-  const scheme = init<T>().children({
+  const scheme = init<T>().rules({
     value: list(stringScheme)
   });
 
@@ -184,12 +213,12 @@ test("validate. list of values", t => {
 test("validate. map of values", t => {
   type T = { value: { [name: string]: string } };
 
-  const stringScheme = init<string>().rules({
+  const stringScheme = init<string>().fullObjectRules({
     required: v => !v,
     minLenght: v => v.length <= 8
   });
 
-  const scheme = init<T>().children({
+  const scheme = init<T>().rules({
     value: map(stringScheme)
   });
 

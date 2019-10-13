@@ -20,13 +20,34 @@ export interface Scheme<
   validate(
     data: Data
   ): null | (ChildResult<Children> & ValuesOf<RulesErrors<any, Rules>>);
-  rules<R extends { [R: string]: Rule<Data, any> }>(
+  fullObjectRules<R extends { [R: string]: Rule<Data, any> }>(
     rules: R
   ): Scheme<Data, Rules & R, Children>;
-  children<C extends { [F in keyof Data]?: ValidationScheme<Data[F], any> }>(
+  rules<
+    C extends {
+      [F in keyof Data]?:
+        | ValidationScheme<Data[F], any>
+        | { [R: string]: Rule<Data[F], any> };
+    }
+  >(
     children: C
-  ): Scheme<Data, Rules, Children & C>;
+  ): Scheme<
+    Data,
+    Rules,
+    Children &
+      {
+        [Child in keyof C]: ChildScheme<
+          C[Child],
+          Child extends keyof Data ? Data[Child] : any
+        >;
+      }
+  >;
 }
+
+export type ChildScheme<
+  C extends ValidationScheme<any, any> | { [R: string]: Rule<any, any> },
+  Data
+> = C extends ValidationScheme<any, any> ? C : Scheme<Data, C, {}>;
 
 export type ValidationScheme<Data, Result> = {
   validate(data: Data): null | Result;
@@ -68,21 +89,36 @@ class Builder<
   Rules extends { [R: string]: Rule<Data, any> },
   Children extends { [F in keyof Data]?: ValidationScheme<Data[F], any> } = {}
 > implements Scheme<Data, Rules, Children> {
-  constructor(private _rules: Rules, private _children: Children) {}
+  constructor(private _fullObjectRules: Rules, private _rules: Children) {}
 
-  rules<R extends { [R: string]: Rule<Data, any> }>(rules: R) {
+  fullObjectRules<R extends { [R: string]: Rule<Data, any> }>(rules: R) {
     return new Builder<Data, Rules & R, Children>(
-      { ...this._rules, ...rules },
-      { ...this._children }
+      { ...this._fullObjectRules, ...rules },
+      { ...this._rules }
     );
   }
 
-  children<C extends { [F in keyof Data]?: ValidationScheme<Data[F], any> }>(
-    children: C
-  ) {
+  rules<
+    C extends {
+      [F in keyof Data]?:
+        | ValidationScheme<Data[F], any>
+        | { [R: string]: Rule<Data[F], any> };
+    }
+  >(rules: C) {
+    const convertedRules = Object.keys(rules).reduce(
+      (prev, propertyName) => ({
+        ...prev,
+        [propertyName]:
+          typeof (rules as any)[propertyName].validate === "function"
+            ? (rules as any)[propertyName]
+            : init<any>().fullObjectRules((rules as any)[propertyName])
+      }),
+      {}
+    );
+
     return new Builder<Data, Rules, Children & C>(
-      { ...this._rules },
-      { ...this._children, ...children }
+      { ...this._fullObjectRules },
+      { ...this._rules, ...(convertedRules as any) }
     );
   }
 
@@ -90,15 +126,15 @@ class Builder<
     data: Data
   ): null | (ChildResult<Children> & ValuesOf<RulesErrors<any, Rules>>) {
     let hasErrors = false;
-    const ownRules = validateRules(data, this._rules);
+    const ownRules = validateRules(data, this._fullObjectRules);
     if (ownRules) {
       hasErrors = true;
     }
 
     const errors = ownRules || [];
 
-    Object.keys(this._children).forEach(key => {
-      const res = (this._children as any)[key].validate((data as any)[key]);
+    Object.keys(this._rules).forEach(key => {
+      const res = (this._rules as any)[key].validate((data as any)[key]);
       if (res) {
         hasErrors = true;
         errors[key] = res;
@@ -216,3 +252,15 @@ export function map<S extends ValidationScheme<Data, any>, Data>(scheme: S) {
     }
   };
 }
+
+// // -------------------------------------------------------------------------------------------
+
+// type T = { value: string };
+
+// const a = init<T>().rules({
+//   value: {
+//     required: t => true
+//   }
+// });
+
+// a.validate({ value: "" }).value[0].type === "required";
