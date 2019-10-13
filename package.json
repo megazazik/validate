@@ -1,6 +1,6 @@
 {
   "name": "@megazazik/validate",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Validate objects via simple functions",
   "main": "dist/index.js",
   "module": "dist/index.js",
