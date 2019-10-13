@@ -6,7 +6,7 @@ export type RuleError<K, R extends Rule<any, any>> = R extends (
   ? { type: K }
   : { type: K; error: ReturnType<R> };
 
-type ValuesOf<T> = [T[keyof T]];
+type ValuesOf<T> = Array<T[keyof T]>;
 
 export type RulesErrors<T, Rules extends { [R: string]: Rule<T, any> }> = {
   [R in keyof Rules]: RuleError<R, Rules[R]>;
