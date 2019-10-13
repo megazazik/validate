@@ -1,0 +1,21 @@
+{
+  "name": "z-validate",
+  "version": "0.0.1",
+  "description": "Validate objects via simple functions",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "keywords": [
+    "validate",
+    "scheme"
+  ],
+  "author": "lebedev.mv <lebedev.mv@tutu.ru>",
+  "license": "MIT",
+  "devDependencies": {
+    "commitizen": "^4.0.3",
+    "conventional-changelog-cli": "^2.0.25",
+    "cz-conventional-changelog": "^3.0.2",
+    "typescript": "^3.6.3"
+  }
+}
