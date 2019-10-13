@@ -205,12 +205,12 @@ export function map<S extends ValidationScheme<Data, any>, Data>(scheme: S) {
 
         if (res) {
           hasError = true;
+          return {
+            ...prev,
+            [name]: res
+          };
         }
-
-        return {
-          ...prev,
-          [name]: res
-        };
+        return prev;
       }, {});
       return hasError ? result : null;
     }

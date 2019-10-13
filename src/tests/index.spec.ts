@@ -199,8 +199,7 @@ test("validate. map of values", t => {
   t.equal(validationResult.length, 0);
   t.deepEqual(validationResult.value, {
     v1: [{ type: "required" }],
-    v2: [{ type: "minLenght" }],
-    v3: null
+    v2: [{ type: "minLenght" }]
   });
 
   t.deepEqual(
