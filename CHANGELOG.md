@@ -1,3 +1,12 @@
+# [0.2.0](http://github.com/megazazik/@megazazik/validate/compare/v0.1.2...v0.2.0) (2019-10-13)
+
+
+### Features
+
+* add property rules via rules method without nested schemes ([553c42b](http://github.com/megazazik/@megazazik/validate/commit/553c42b6fcec89b2601e01ff58aacae102c48fd7))
+
+
+
 ## [0.1.2](http://github.com/megazazik/@megazazik/validate/compare/v0.1.1...v0.1.2) (2019-10-13)
 
 
