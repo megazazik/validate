@@ -66,7 +66,7 @@ console.log(errors.length); // 0
 // and errors of nested rules can be still accessed via properties
 console.log(errors.value); // [ {type: 'minLenght', error: {length: 3} ]
 
-// if object has no own errors no nested errors then the result of validation is null
+// if object has no own errors, no nested errors then the result of validation is null
 myObjectScheme.validate({ value: "123456789" });
 // null
 ```

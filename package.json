@@ -3,6 +3,8 @@
   "version": "0.0.1",
   "description": "Validate objects via simple functions",
   "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc && tsc -p tsconfig.es.json",
     "version": "npm run build && conventional-changelog -p angular -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
