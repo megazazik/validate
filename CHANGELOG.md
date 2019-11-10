@@ -1,3 +1,17 @@
+# [0.3.0](http://github.com/megazazik/@megazazik/validate/compare/v0.2.0...v0.3.0) (2019-11-10)
+
+
+### Features
+
+* rules should return false, null or undefined if data is correct ([a693c2c](http://github.com/megazazik/@megazazik/validate/commit/a693c2cab92166e60c1cc66533020a15472df558))
+
+
+### BREAKING CHANGES
+
+* Now any falsy values returned by rules except false, null, undefined are errors
+
+
+
 # [0.2.0](http://github.com/megazazik/@megazazik/validate/compare/v0.1.2...v0.2.0) (2019-10-13)
 
 
