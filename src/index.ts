@@ -157,11 +157,11 @@ export function validateRules<D>(
       const allErrors = Object.keys(allOfRules)
         .map(ruleKey => {
           const res = allOfRules[ruleKey](data);
-          if (res) {
-            return getError(ruleKey, res);
+          if (res === false || res == null) {
+            return false;
           }
 
-          return res;
+          return getError(ruleKey, res);
         })
         .filter(Boolean);
 
@@ -173,13 +173,13 @@ export function validateRules<D>(
       return false;
     }
     const result = rules[key](data);
-    if (result) {
-      errors = [getError(key, result)];
-
-      return true;
+    if (result === false || result == null) {
+      return false;
     }
 
-    return false;
+    errors = [getError(key, result)];
+
+    return true;
   });
 
   return errors;
@@ -252,15 +252,3 @@ export function map<S extends ValidationScheme<Data, any>, Data>(scheme: S) {
     }
   };
 }
-
-// // -------------------------------------------------------------------------------------------
-
-// type T = { value: string };
-
-// const a = init<T>().rules({
-//   value: {
-//     required: t => true
-//   }
-// });
-
-// a.validate({ value: "" }).value[0].type === "required";

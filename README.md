@@ -20,7 +20,7 @@ const myScheme = init().rules({
 });
 ```
 
-Each rule should return `false` if data is correct. If data has errors a rule should return `true` or any truthy value with meta of error.
+Each rule should return `false`, `undefined` or `null` if data is correct. If data has errors a rule should return `true` or any other value with meta of error.
 
 A scheme has the `validate` method. It returns `null` if data is correct or an object with errors.
 

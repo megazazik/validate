@@ -240,3 +240,106 @@ test("validate. map of values", t => {
 
   t.end();
 });
+
+test("validate. simple value. falsy values", t => {
+  t.deepEqual(
+    init<string>()
+      .fullObjectRules({ nullAsValue: () => false })
+      .validate(""),
+    null
+  );
+
+  t.deepEqual(
+    init<string>()
+      .fullObjectRules({ nullAsValue: () => null })
+      .validate(""),
+    null
+  );
+
+  t.deepEqual(
+    init<string>()
+      .fullObjectRules({ undefidedAsValue: () => undefined })
+      .validate(""),
+    null
+  );
+
+  t.deepEqual(
+    init<string>()
+      .fullObjectRules({ zeroAsValue: () => 0 })
+      .validate(""),
+    [{ type: "zeroAsValue", error: 0 }]
+  );
+
+  t.deepEqual(
+    init<string>()
+      .fullObjectRules({ emptyStringAsValue: () => "" })
+      .validate(""),
+    [{ type: "emptyStringAsValue", error: "" }]
+  );
+
+  t.end();
+});
+
+test("validate. fields. falsy values", t => {
+  t.deepEqual(
+    init<{ f: string }>()
+      .rules({ f: { nullAsValue: () => null } })
+      .validate({ f: "" }),
+    null
+  );
+
+  t.deepEqual(
+    init<{ f: string }>()
+      .rules({ f: { undefidedAsValue: () => undefined } })
+      .validate({ f: "" }),
+    null
+  );
+
+  t.deepEqual(
+    init<{ f: string }>()
+      .rules({ f: { zeroAsValue: () => 0 } })
+      .validate({ f: "" }),
+    { f: [{ type: "zeroAsValue", error: 0 }] }
+  );
+
+  t.deepEqual(
+    init<{ f: string }>()
+      .rules({ f: { emptyStringAsValue: () => "" } })
+      .validate({ f: "" }),
+    { f: [{ type: "emptyStringAsValue", error: "" }] }
+  );
+
+  t.end();
+});
+
+test("validate. all of. falsy values", t => {
+  t.deepEqual(
+    init<{ f: string }>()
+      .rules({ f: allOf({ nullAsValue: () => null }) })
+      .validate({ f: "" }),
+    null
+  );
+
+  t.deepEqual(
+    init<{ f: string }>()
+      .rules({ f: allOf({ undefidedAsValue: () => undefined }) })
+      .validate({ f: "" }),
+    null
+  );
+
+  t.deepEqual(
+    init<{ f: string }>()
+      .rules({ f: allOf({ zeroAsValue: () => 0 }) })
+      .validate({ f: "" }),
+    { f: [{ type: "zeroAsValue", error: 0 }] }
+  );
+
+  t.deepEqual(
+    init<{ f: string }>()
+      .rules({ f: allOf({ emptyStringAsValue: () => "" }) })
+      .validate({ f: "" }),
+    { f: [{ type: "emptyStringAsValue", error: "" }] }
+  );
+
+  t.end();
+});
