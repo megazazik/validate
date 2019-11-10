@@ -35,9 +35,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/megazazik/@megazazik/validate.git"
+    "url": "git+https://github.com/megazazik/validate.git"
   },
-  "homepage": "https://github.com/megazazik/@megazazik/validate",
+  "homepage": "https://github.com/megazazik/validate",
   "files": [
     "dist",
     "dist-es",
