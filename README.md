@@ -1,6 +1,6 @@
 # @megazazik/validate
 
-![npm](https://img.shields.io/npm/v/@megazazik/validate)
+[![npm version](https://badge.fury.io/js/%40megazazik%2Fvalidate.svg)](https://badge.fury.io/js/%40megazazik%2Fvalidate)
 
 Library to validate values via simple functions.
 
