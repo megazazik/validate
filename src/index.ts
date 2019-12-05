@@ -61,20 +61,16 @@ type RulesOfScheme<S extends Scheme<any, any, any>> = S extends Scheme<
   ? R
   : never;
 
-type ChildrenOfScheme<S extends Scheme<any, any, any>> = S extends Scheme<
-  any,
-  infer R,
-  any
->
-  ? R
-  : never;
+export type ChildrenOfScheme<
+  S extends Scheme<any, any, any>
+> = S extends Scheme<any, any, infer R> ? R : never;
 
 export type ValidationResult<S extends Scheme<any, any, any>> =
   | null
-  | ChildResult<ChildrenOfScheme<S>> &
-      ValuesOf<RulesErrors<any, RulesOfScheme<S>>>;
+  | (ChildResult<ChildrenOfScheme<S>> &
+      ValuesOf<RulesErrors<any, RulesOfScheme<S>>>);
 
-type ChildResult<
+export type ChildResult<
   Children extends { [F: string]: ValidationScheme<any, any> }
 > = {
   [F in keyof Children]?: ReturnType<Children[F]["validate"]>;

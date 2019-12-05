@@ -207,6 +207,8 @@ test("validate. list of values", t => {
     null
   );
 
+  t.deepEqual(scheme.validate({ value: [] }), null);
+
   t.end();
 });
 
