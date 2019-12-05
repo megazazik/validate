@@ -1,3 +1,12 @@
+## [0.3.2](https://github.com/megazazik/validate/compare/v0.3.1...v0.3.2) (2019-12-05)
+
+
+### Bug Fixes
+
+* **types:** fix types declarations ([b2893ed](https://github.com/megazazik/validate/commit/b2893ed09273ce3f64979072b5fdf0402017e24d))
+
+
+
 ## [0.3.1](https://github.com/megazazik/validate/compare/v0.3.0...v0.3.1) (2019-11-10)
 
 
@@ -48,8 +57,8 @@
 
 ### Bug Fixes
 
-* filter empty results in map function, add docs ([18ce317](https://github.com/megazazik/validate/commit/18ce3174b324221ea88f6e957f9ae08f5203de60))
 * **package.json:** add module field, add types field ([82662e0](https://github.com/megazazik/validate/commit/82662e0e6ed51cbb333b69de9edb298e5644c7b7))
+* filter empty results in map function, add docs ([18ce317](https://github.com/megazazik/validate/commit/18ce3174b324221ea88f6e957f9ae08f5203de60))
 
 
 ### Features
