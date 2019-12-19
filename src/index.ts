@@ -6,7 +6,7 @@ export type RuleError<K, R extends Rule<any, any>> = R extends (
   ? { type: K }
   : { type: K; error: ReturnType<R> };
 
-type ValuesOf<T> = Array<T[keyof T]>;
+type ErrorsOf<T> = { errors: Array<T[keyof T]> };
 
 export type RulesErrors<T, Rules extends { [R: string]: Rule<T, any> }> = {
   [R in keyof Rules]: RuleError<R, Rules[R]>;
@@ -17,9 +17,7 @@ export interface Scheme<
   Rules extends { [R: string]: Rule<Data, any> },
   Children extends { [F in keyof Data]?: ValidationScheme<Data[F], any> } = {}
 > {
-  validate(
-    data: Data
-  ): null | (ChildResult<Children> & ValuesOf<RulesErrors<any, Rules>>);
+  validate(data: Data): ValidationResult<Scheme<Data, Rules, Children>>;
   fullObjectRules<R extends { [R: string]: Rule<Data, any> }>(
     rules: R
   ): Scheme<Data, Rules & R, Children>;
@@ -68,7 +66,7 @@ export type ChildrenOfScheme<
 export type ValidationResult<S extends Scheme<any, any, any>> =
   | null
   | (ChildResult<ChildrenOfScheme<S>> &
-      ValuesOf<RulesErrors<any, RulesOfScheme<S>>>);
+      ErrorsOf<RulesErrors<any, RulesOfScheme<S>>>);
 
 export type ChildResult<
   Children extends { [F: string]: ValidationScheme<any, any> }
@@ -118,16 +116,14 @@ class Builder<
     );
   }
 
-  validate(
-    data: Data
-  ): null | (ChildResult<Children> & ValuesOf<RulesErrors<any, Rules>>) {
+  validate(data: Data): ValidationResult<Scheme<Data, Rules, Children>> {
     let hasErrors = false;
-    const ownRules = validateRules(data, this._fullObjectRules);
-    if (ownRules) {
+    const ownRulesErrors = validateRules(data, this._fullObjectRules);
+    if (ownRulesErrors) {
       hasErrors = true;
     }
 
-    const errors = ownRules || [];
+    const errors: any = ownRulesErrors ? { errors: ownRulesErrors } : {};
 
     Object.keys(this._rules).forEach(key => {
       const res = (this._rules as any)[key].validate((data as any)[key]);

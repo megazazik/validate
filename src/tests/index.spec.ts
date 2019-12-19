@@ -9,8 +9,8 @@ test("validate. simple value", t => {
     minLenght: v => v.length <= 8
   });
 
-  t.deepEqual(scheme.validate(""), [{ type: "required" }]);
-  t.deepEqual(scheme.validate("sdfsf"), [{ type: "minLenght" }]);
+  t.deepEqual(scheme.validate(""), { errors: [{ type: "required" }] });
+  t.deepEqual(scheme.validate("sdfsf"), { errors: [{ type: "minLenght" }] });
   t.equal(scheme.validate("sdfsfsfsdfsdf"), null);
 
   t.end();
@@ -28,18 +28,12 @@ test("validate. nested rules via scheme", t => {
     value: stringScheme
   });
 
-  t.deepEqual(
-    scheme.validate({ value: "wer" }).length,
-    0,
-    "Should have length property as an array"
-  );
-
   t.deepEqual(scheme.validate({ value: "" }), {
-    value: [{ type: "required" }]
+    value: { errors: [{ type: "required" }] }
   });
 
   t.deepEqual(scheme.validate({ value: "sdfsf" }), {
-    value: [{ type: "minLenght" }]
+    value: { errors: [{ type: "minLenght" }] }
   });
 
   t.deepEqual(scheme.validate({ value: "sdfsfsfsdfsdf" }), null);
@@ -57,18 +51,12 @@ test("validate. nested rules", t => {
     }
   });
 
-  t.deepEqual(
-    scheme.validate({ value: "wer" }).length,
-    0,
-    "Should have length property as an array"
-  );
-
   t.deepEqual(scheme.validate({ value: "" }), {
-    value: [{ type: "required" }]
+    value: { errors: [{ type: "required" }] }
   });
 
   t.deepEqual(scheme.validate({ value: "sdfsf" }), {
-    value: [{ type: "minLenght" }]
+    value: { errors: [{ type: "minLenght" }] }
   });
 
   t.deepEqual(scheme.validate({ value: "sdfsfsfsdfsdf" }), null);
@@ -94,8 +82,8 @@ test("validate. nested value with own props", t => {
     });
 
   t.deepEqual(scheme.validate({ value: "" }), {
-    value: [{ type: "required" }],
-    [0]: { type: "valueRequired" }
+    value: { errors: [{ type: "required" }] },
+    errors: [{ type: "valueRequired" }]
   });
 
   t.deepEqual(
@@ -103,8 +91,8 @@ test("validate. nested value with own props", t => {
       value: "sdfs"
     }),
     {
-      value: [{ type: "minLenght" }],
-      [0]: { type: "valueMinLength" }
+      value: { errors: [{ type: "minLenght" }] },
+      errors: [{ type: "valueMinLength" }]
     }
   );
 
@@ -136,8 +124,8 @@ test("validate. not boolean result", t => {
     });
 
   t.deepEqual(scheme.validate({ value: "" }), {
-    value: [{ type: "required", error: { text: "empty" } }],
-    [0]: { type: "valueRequired", error: "valueRequired" }
+    value: { errors: [{ type: "required", error: { text: "empty" } }] },
+    errors: [{ type: "valueRequired", error: "valueRequired" }]
   });
 
   t.deepEqual(
@@ -145,8 +133,8 @@ test("validate. not boolean result", t => {
       value: "sdfs"
     }),
     {
-      value: [{ type: "minLenght", error: "myerror" }],
-      [0]: { type: "valueMinLength" }
+      value: { errors: [{ type: "minLenght", error: "myerror" }] },
+      errors: [{ type: "valueMinLength" }]
     }
   );
 
@@ -169,12 +157,13 @@ test("validate. all rules of list", t => {
     })
   });
 
-  t.deepEqual(scheme.validate(""), [{ type: "required" }]);
-  t.deepEqual(scheme.validate("sdfsf"), [
-    { type: "minLenght" },
-    { type: "contains4" }
-  ]);
-  t.deepEqual(scheme.validate("sdfsfsfsdfsdf"), [{ type: "contains4" }]);
+  t.deepEqual(scheme.validate(""), { errors: [{ type: "required" }] });
+  t.deepEqual(scheme.validate("sdfsf"), {
+    errors: [{ type: "minLenght" }, { type: "contains4" }]
+  });
+  t.deepEqual(scheme.validate("sdfsfsfsdfsdf"), {
+    errors: [{ type: "contains4" }]
+  });
   t.deepEqual(scheme.validate("sdfsfsf4sdfsdf"), null);
 
   t.end();
@@ -195,12 +184,13 @@ test("validate. list of values", t => {
   const validationResult = scheme.validate({
     value: ["", "sdfsdf", "123123123"]
   });
-  t.equal(validationResult.length, 0);
-  t.deepEqual(validationResult.value, [
-    [{ type: "required" }],
-    [{ type: "minLenght" }],
-    null
-  ]);
+  t.deepEqual(validationResult, {
+    value: [
+      { errors: [{ type: "required" }] },
+      { errors: [{ type: "minLenght" }] },
+      null
+    ]
+  });
 
   t.deepEqual(
     scheme.validate({ value: ["qweasdzxc", "321311231", "123123123"] }),
@@ -227,10 +217,11 @@ test("validate. map of values", t => {
   const validationResult = scheme.validate({
     value: { v1: "", v2: "sdfsdf", v3: "123123123" }
   });
-  t.equal(validationResult.length, 0);
-  t.deepEqual(validationResult.value, {
-    v1: [{ type: "required" }],
-    v2: [{ type: "minLenght" }]
+  t.deepEqual(validationResult, {
+    value: {
+      v1: { errors: [{ type: "required" }] },
+      v2: { errors: [{ type: "minLenght" }] }
+    }
   });
 
   t.deepEqual(
@@ -269,14 +260,14 @@ test("validate. simple value. falsy values", t => {
     init<string>()
       .fullObjectRules({ zeroAsValue: () => 0 })
       .validate(""),
-    [{ type: "zeroAsValue", error: 0 }]
+    { errors: [{ type: "zeroAsValue", error: 0 }] }
   );
 
   t.deepEqual(
     init<string>()
       .fullObjectRules({ emptyStringAsValue: () => "" })
       .validate(""),
-    [{ type: "emptyStringAsValue", error: "" }]
+    { errors: [{ type: "emptyStringAsValue", error: "" }] }
   );
 
   t.end();
@@ -301,14 +292,14 @@ test("validate. fields. falsy values", t => {
     init<{ f: string }>()
       .rules({ f: { zeroAsValue: () => 0 } })
       .validate({ f: "" }),
-    { f: [{ type: "zeroAsValue", error: 0 }] }
+    { f: { errors: [{ type: "zeroAsValue", error: 0 }] } }
   );
 
   t.deepEqual(
     init<{ f: string }>()
       .rules({ f: { emptyStringAsValue: () => "" } })
       .validate({ f: "" }),
-    { f: [{ type: "emptyStringAsValue", error: "" }] }
+    { f: { errors: [{ type: "emptyStringAsValue", error: "" }] } }
   );
 
   t.end();
@@ -333,14 +324,14 @@ test("validate. all of. falsy values", t => {
     init<{ f: string }>()
       .rules({ f: allOf({ zeroAsValue: () => 0 }) })
       .validate({ f: "" }),
-    { f: [{ type: "zeroAsValue", error: 0 }] }
+    { f: { errors: [{ type: "zeroAsValue", error: 0 }] } }
   );
 
   t.deepEqual(
     init<{ f: string }>()
       .rules({ f: allOf({ emptyStringAsValue: () => "" }) })
       .validate({ f: "" }),
-    { f: [{ type: "emptyStringAsValue", error: "" }] }
+    { f: { errors: [{ type: "emptyStringAsValue", error: "" }] } }
   );
 
   t.end();

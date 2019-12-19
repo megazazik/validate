@@ -26,10 +26,10 @@ A scheme has the `validate` method. It returns `null` if data is correct or an o
 
 ```js
 myScheme.validate({ value: "" });
-// {value: [{type: 'required'}]}
+// {value: {errors: [{type: 'required'}]}}
 
 myScheme.validate({ value: "123" });
-// {value: [{type: 'minLenght', error: {length: 3}]}
+// {value: {errors: [{type: 'minLenght', error: {length: 3}]}}}
 
 myScheme.validate({ value: "123456789" });
 // null
@@ -54,7 +54,7 @@ const parentScheme = init().rules({
 });
 
 parentScheme.validate({ child: { value: "" } });
-// {child: {value: [{type: 'required'}]}
+// {child: {value: {errors: [{type: 'required'}]}}}
 ```
 
 ## Validate full object
@@ -72,10 +72,10 @@ const myStringScheme = init().fullObjectRules({
 });
 
 myStringScheme.validate("");
-// [{type: 'required'}]
+// {errors: [{type: 'required'}]}
 
 myStringScheme.validate("123");
-// [{type: 'minLenght'}]
+// {errors: [{type: 'minLenght'}]}
 
 myStringScheme.validate("123456789");
 // null
@@ -99,17 +99,17 @@ const myObjectScheme = init()
     valueRequired: obj => !obj.value
   });
 
-const errors = myObjectScheme.validate({ value: "" });
+const result = myObjectScheme.validate({ value: "" });
 // errors of full object rules is an array
-console.log(errors[0]); // {type: 'valueRequired'}
+console.log(result.errors[0]); // {type: 'valueRequired'}
 // errors of property rules can be accessed via properties
-console.log(errors.value); // [ {type: 'required'} ]
+console.log(result.value.errors); // [ {type: 'required'} ]
 
 // if object has no own errors then the length of result array is 0
-const errors2 = myObjectScheme.validate({ value: "123" });
-console.log(errors.length); // 0
+const result2 = myObjectScheme.validate({ value: "123" });
+console.log(result2.errors.length); // 0
 // and errors of property rules can be still accessed via properties
-console.log(errors.value); // [ {type: 'minLenght', error: {length: 3} ]
+console.log(result2.value.errors); // [ {type: 'minLenght', error: {length: 3} ]
 
 // if object has no own errors, no property errors then the result of validation is null
 myObjectScheme.validate({ value: "123456789" });
@@ -139,8 +139,8 @@ const errors = myObjectScheme.validate({
 
 console.log(errors.values);
 // [
-//   [{ type: "required" }],
-//   [{ type: "minLenght" }],
+//   {errors: [{ type: "required" }]},
+//   {errors: [{ type: "minLenght" }]},
 //   null
 // ]
 ```
@@ -168,8 +168,8 @@ const errors = myObjectScheme.validate({
 
 console.log(errors.values);
 // {
-//   v1: [{ type: "required" }],
-//   v2: [{ type: "minLenght" }]
+//   v1: {errors: [{ type: "required" }]},
+//   v2: {errors: [{ type: "minLenght" }]}
 // }
 ```
 
