@@ -1,3 +1,17 @@
+# [0.4.0](https://github.com/megazazik/validate/compare/v0.3.2...v0.4.0) (2019-12-19)
+
+
+### improvement
+
+* move errors to errors field of validation result ([36c7b4b](https://github.com/megazazik/validate/commit/36c7b4b147f5d031de092e01149611becc7c6f93)), closes [#1](https://github.com/megazazik/validate/issues/1)
+
+
+### BREAKING CHANGES
+
+* A validation result is not an object now. It has an errors field instead
+
+
+
 ## [0.3.2](https://github.com/megazazik/validate/compare/v0.3.1...v0.3.2) (2019-12-05)
 
 
