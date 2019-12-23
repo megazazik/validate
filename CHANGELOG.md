@@ -1,3 +1,17 @@
+# [0.5.0](https://github.com/megazazik/validate/compare/v0.4.1...v0.5.0) (2019-12-23)
+
+
+### Features
+
+* remove fullObjectRules method ([688f559](https://github.com/megazazik/validate/commit/688f559d208117896241ccf5c66a213c6d97a618))
+
+
+### BREAKING CHANGES
+
+* fullObjectRules method was removed. Use rules method instead
+
+
+
 ## [0.4.1](https://github.com/megazazik/validate/compare/v0.4.0...v0.4.1) (2019-12-23)
 
 
