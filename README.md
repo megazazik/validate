@@ -57,16 +57,16 @@ parentScheme.validate({ child: { value: "" } });
 // {child: {value: {errors: [{type: 'required'}]}}}
 ```
 
-## Validate full object
+## Rules for a whole object
 
-`rules` method set rules for properties of object. If you need to validate interaction of several properties or some primitive value you can use `fullObjectRules`.
+You can also use `rules` method if you need to validate some primitive value or a whole object.
 
 A primitive value example.
 
 ```js
 import { init } from "@megazazik/validate";
 
-const myStringScheme = init().fullObjectRules({
+const myStringScheme = init().rules({
   required: str => !str,
   minLenght: str => str.length <= 8
 });
@@ -81,26 +81,23 @@ myStringScheme.validate("123456789");
 // null
 ```
 
-Object rules with property rules example.
+A whole object rules example.
 
 ```js
 import { init } from "@megazazik/validate";
 
 // this scheme validates objects which look like {value: ''}
-const myObjectScheme = init()
-  .rules({
-    value: {
-      required: str => !str,
-      minLenght: str => str.length <= 8
-    }
-  })
-  .fullObjectRules({
-    // in this case the valueRequired rule duplicates the 'require' rule from of 'value' property
-    valueRequired: obj => !obj.value
-  });
+const myObjectScheme = init().rules({
+  value: {
+    required: str => !str,
+    minLenght: str => str.length <= 8
+  },
+  // in this case the valueRequired rule duplicates the 'require' rule from of 'value' property
+  valueRequired: obj => !obj.value
+});
 
 const result = myObjectScheme.validate({ value: "" });
-// errors of full object rules is an array
+// errors of whole object rules is an array
 console.log(result.errors[0]); // {type: 'valueRequired'}
 // errors of property rules can be accessed via properties
 console.log(result.value.errors); // [ {type: 'required'} ]
@@ -123,7 +120,7 @@ If you have an object with a dynamic array of values you can validate them via t
 ```js
 import { init, list } from "@megazazik/validate";
 
-const myStringScheme = init().fullObjectRules({
+const myStringScheme = init().rules({
   required: str => !str,
   minLenght: str => (str.length <= 8 ? { length: str.length } : false)
 });
@@ -152,7 +149,7 @@ If you have an object with a dynamic map of values you can validate them via the
 ```js
 import { init, map } from "@megazazik/validate";
 
-const myStringScheme = init().fullObjectRules({
+const myStringScheme = init().rules({
   required: str => !str,
   minLenght: str => (str.length <= 8 ? { length: str.length } : false)
 });
@@ -175,7 +172,7 @@ console.log(errors.values);
 
 ## Errors of all rules instead of first error
 
-By default the `validate` function returns the first error for each property and the first error of full object errors. In this example the `minLenght` rule will not be checked if the `required` rule returns `true`.
+By default the `validate` function returns the first error for each property and the first error of a whole object errors. In this example the `minLenght` rule will not be checked if the `required` rule returns `true`.
 
 ```js
 import { init } from "@megazazik/validate";

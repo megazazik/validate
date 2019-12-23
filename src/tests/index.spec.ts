@@ -4,13 +4,13 @@ import { init, allOf, list, map } from "..";
 const required = <V = any>(data: V) => !data;
 
 test("validate. simple value", t => {
-  const scheme = init<string>().fullObjectRules({
+  const scheme = init<string>().rules({
     required,
     minLenght: v => v.length <= 8
   });
 
-  t.deepEqual(scheme.validate(""), { errors: [{ type: "required" }] });
-  t.deepEqual(scheme.validate("sdfsf"), { errors: [{ type: "minLenght" }] });
+  t.deepEqual(scheme.validate("")?.errors, [{ type: "required" }]);
+  t.deepEqual(scheme.validate("sdfsf")?.errors, [{ type: "minLenght" }]);
   t.equal(scheme.validate("sdfsfsfsdfsdf"), null);
 
   t.end();
@@ -19,7 +19,7 @@ test("validate. simple value", t => {
 test("validate. nested rules via scheme", t => {
   type T = { value: string };
 
-  const stringScheme = init<string>().fullObjectRules({
+  const stringScheme = init<string>().rules({
     required,
     minLenght: v => v.length <= 8
   });
@@ -28,7 +28,8 @@ test("validate. nested rules via scheme", t => {
     value: stringScheme
   });
 
-  t.deepEqual(scheme.validate({ value: "" }), {
+  const result1 = scheme.validate({ value: "" });
+  t.deepEqual(result1, {
     value: { errors: [{ type: "required" }] }
   });
 
@@ -55,7 +56,8 @@ test("validate. nested rules", t => {
     value: { errors: [{ type: "required" }] }
   });
 
-  t.deepEqual(scheme.validate({ value: "sdfsf" }), {
+  const res = scheme.validate({ value: "sdfsf" });
+  t.deepEqual(res, {
     value: { errors: [{ type: "minLenght" }] }
   });
 
@@ -67,21 +69,19 @@ test("validate. nested rules", t => {
 test("validate. nested value with own props", t => {
   type T = { value: string };
 
-  const stringScheme = init<string>().fullObjectRules({
+  const stringScheme = init<string>().rules({
     required,
     minLenght: v => v.length <= 8
   });
 
-  const scheme = init<T>()
-    .rules({
-      value: stringScheme
-    })
-    .fullObjectRules({
-      valueRequired: v => !v.value,
-      valueMinLength: v => v.value.length <= 6
-    });
+  const scheme = init<T>().rules({
+    value: stringScheme,
+    valueRequired: v => !v.value,
+    valueMinLength: v => v.value.length <= 6
+  });
 
-  t.deepEqual(scheme.validate({ value: "" }), {
+  const res = scheme.validate({ value: "" });
+  t.deepEqual(res, {
     value: { errors: [{ type: "required" }] },
     errors: [{ type: "valueRequired" }]
   });
@@ -109,21 +109,19 @@ test("validate. nested value with own props", t => {
 test("validate. not boolean result", t => {
   type T = { value: string };
 
-  const stringScheme = init<string>().fullObjectRules({
+  const stringScheme = init<string>().rules({
     required: v => (v ? null : { text: "empty" }),
     minLenght: v => (v.length <= 8 ? "myerror" : null)
   });
 
-  const scheme = init<T>()
-    .rules({
-      value: stringScheme
-    })
-    .fullObjectRules({
-      valueRequired: v => (!v.value ? "valueRequired" : false),
-      valueMinLength: v => v.value.length <= 6
-    });
+  const scheme = init<T>().rules({
+    value: stringScheme,
+    valueRequired: v => (!v.value ? "valueRequired" : false),
+    valueMinLength: v => v.value.length <= 6
+  });
 
-  t.deepEqual(scheme.validate({ value: "" }), {
+  const res = scheme.validate({ value: "" });
+  t.deepEqual(res, {
     value: { errors: [{ type: "required", error: { text: "empty" } }] },
     errors: [{ type: "valueRequired", error: "valueRequired" }]
   });
@@ -149,7 +147,7 @@ test("validate. not boolean result", t => {
 });
 
 test("validate. all rules of list", t => {
-  const scheme = init<string>().fullObjectRules({
+  const scheme = init<string>().rules({
     required,
     ...allOf({
       minLenght: v => v.length <= 8,
@@ -172,7 +170,7 @@ test("validate. all rules of list", t => {
 test("validate. list of values", t => {
   type T = { value: string[] };
 
-  const stringScheme = init<string>().fullObjectRules({
+  const stringScheme = init<string>().rules({
     required: v => !v,
     minLenght: v => v.length <= 8
   });
@@ -205,7 +203,7 @@ test("validate. list of values", t => {
 test("validate. map of values", t => {
   type T = { value: { [name: string]: string } };
 
-  const stringScheme = init<string>().fullObjectRules({
+  const stringScheme = init<string>().rules({
     required: v => !v,
     minLenght: v => v.length <= 8
   });
@@ -237,35 +235,35 @@ test("validate. map of values", t => {
 test("validate. simple value. falsy values", t => {
   t.deepEqual(
     init<string>()
-      .fullObjectRules({ nullAsValue: () => false })
+      .rules({ nullAsValue: () => false })
       .validate(""),
     null
   );
 
   t.deepEqual(
     init<string>()
-      .fullObjectRules({ nullAsValue: () => null })
+      .rules({ nullAsValue: () => null })
       .validate(""),
     null
   );
 
   t.deepEqual(
     init<string>()
-      .fullObjectRules({ undefidedAsValue: () => undefined })
+      .rules({ undefidedAsValue: () => undefined })
       .validate(""),
     null
   );
 
   t.deepEqual(
     init<string>()
-      .fullObjectRules({ zeroAsValue: () => 0 })
+      .rules({ zeroAsValue: () => 0 })
       .validate(""),
     { errors: [{ type: "zeroAsValue", error: 0 }] }
   );
 
   t.deepEqual(
     init<string>()
-      .fullObjectRules({ emptyStringAsValue: () => "" })
+      .rules({ emptyStringAsValue: () => "" })
       .validate(""),
     { errors: [{ type: "emptyStringAsValue", error: "" }] }
   );
