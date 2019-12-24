@@ -1,3 +1,18 @@
+# [0.6.0](https://github.com/megazazik/validate/compare/v0.5.0...v0.6.0) (2019-12-24)
+
+
+### Features
+
+* place each error to separate property ([346d5b2](https://github.com/megazazik/validate/commit/346d5b2a8050067bf05763ec7827f30446985aca))
+
+
+### BREAKING CHANGES
+
+* Your code probably should still work because validation results have the same
+errors field. But if you use tests, they may fail because of new fields in the validation results
+
+
+
 # [0.5.0](https://github.com/megazazik/validate/compare/v0.4.1...v0.5.0) (2019-12-23)
 
 
