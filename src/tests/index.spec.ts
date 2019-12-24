@@ -1,5 +1,5 @@
 import test from "tape";
-import { init, allOf, list, map } from "..";
+import { init, allOf, list, map, getErrors } from "..";
 
 const required = <V = any>(data: V) => !data;
 
@@ -10,7 +10,11 @@ test("validate. simple value", t => {
   });
 
   t.deepEqual(scheme.validate("")?.errors, [{ type: "required" }]);
+  t.deepEqual(scheme.validate("").required, true);
+  t.deepEqual(scheme.validate(""), { required: true });
   t.deepEqual(scheme.validate("sdfsf")?.errors, [{ type: "minLenght" }]);
+  t.deepEqual(scheme.validate("sdfsf").minLenght, true);
+  t.deepEqual(scheme.validate("sdfsf"), { minLenght: true });
   t.equal(scheme.validate("sdfsfsfsdfsdf"), null);
 
   t.end();
@@ -30,14 +34,52 @@ test("validate. nested rules via scheme", t => {
 
   const result1 = scheme.validate({ value: "" });
   t.deepEqual(result1, {
-    value: { errors: [{ type: "required" }] }
+    value: { required: true }
   });
+
+  t.deepEqual(result1.value.errors, [{ type: "required" }]);
+
+  t.deepEqual(scheme.validate({ value: "sdfsf" }).errors, null);
 
   t.deepEqual(scheme.validate({ value: "sdfsf" }), {
-    value: { errors: [{ type: "minLenght" }] }
+    value: { minLenght: true }
   });
 
+  t.deepEqual(scheme.validate({ value: "sdfsf" }).value.errors, [
+    { type: "minLenght" }
+  ]);
+
   t.deepEqual(scheme.validate({ value: "sdfsfsfsdfsdf" }), null);
+
+  t.end();
+});
+
+test("validate. nested rules via scheme. getErrors", t => {
+  type T = { value: string };
+
+  const stringScheme = init<string>().rules({
+    required,
+    minLenght: v => v.length <= 8
+  });
+
+  const scheme = init<T>().rules({
+    value: stringScheme
+  });
+
+  const result1 = scheme.validate({ value: "" });
+  t.deepEqual(result1, {
+    value: { required: true }
+  });
+
+  t.deepEqual(getErrors(scheme.validate({ value: "" }).value), [
+    { type: "required" }
+  ]);
+
+  t.deepEqual(getErrors(scheme.validate({ value: "sdfsf" })), null);
+
+  t.deepEqual(getErrors(scheme.validate({ value: "sdfsf" }).value), [
+    { type: "minLenght" }
+  ]);
 
   t.end();
 });
@@ -53,13 +95,19 @@ test("validate. nested rules", t => {
   });
 
   t.deepEqual(scheme.validate({ value: "" }), {
-    value: { errors: [{ type: "required" }] }
+    value: { required: true }
   });
+
+  t.deepEqual(scheme.validate({ value: "" }).value.errors, [
+    { type: "required" }
+  ]);
 
   const res = scheme.validate({ value: "sdfsf" });
   t.deepEqual(res, {
-    value: { errors: [{ type: "minLenght" }] }
+    value: { minLenght: true }
   });
+
+  t.deepEqual(res.value.errors, [{ type: "minLenght" }]);
 
   t.deepEqual(scheme.validate({ value: "sdfsfsfsdfsdf" }), null);
 
@@ -81,18 +129,23 @@ test("validate. nested value with own props", t => {
   });
 
   const res = scheme.validate({ value: "" });
+
   t.deepEqual(res, {
-    value: { errors: [{ type: "required" }] },
-    errors: [{ type: "valueRequired" }]
+    value: { required: true },
+    valueRequired: true
   });
+
+  t.deepEqual(res.errors, [{ type: "valueRequired" }]);
+
+  t.deepEqual(res.value.errors, [{ type: "required" }]);
 
   t.deepEqual(
     scheme.validate({
       value: "sdfs"
     }),
     {
-      value: { errors: [{ type: "minLenght" }] },
-      errors: [{ type: "valueMinLength" }]
+      value: { minLenght: true },
+      valueMinLength: true
     }
   );
 
@@ -116,23 +169,31 @@ test("validate. not boolean result", t => {
 
   const scheme = init<T>().rules({
     value: stringScheme,
-    valueRequired: v => (!v.value ? "valueRequired" : false),
+    valueRequired: v => (!v.value ? "valueRequiredError" : false),
     valueMinLength: v => v.value.length <= 6
   });
 
   const res = scheme.validate({ value: "" });
   t.deepEqual(res, {
-    value: { errors: [{ type: "required", error: { text: "empty" } }] },
-    errors: [{ type: "valueRequired", error: "valueRequired" }]
+    value: { required: { text: "empty" } },
+    valueRequired: "valueRequiredError"
   });
+
+  t.deepEqual(res.errors, [
+    { type: "valueRequired", error: "valueRequiredError" }
+  ]);
+
+  t.deepEqual(res.value.errors, [
+    { type: "required", error: { text: "empty" } }
+  ]);
 
   t.deepEqual(
     scheme.validate({
       value: "sdfs"
     }),
     {
-      value: { errors: [{ type: "minLenght", error: "myerror" }] },
-      errors: [{ type: "valueMinLength" }]
+      value: { minLenght: "myerror" },
+      valueMinLength: true
     }
   );
 
@@ -151,16 +212,21 @@ test("validate. all rules of list", t => {
     required,
     ...allOf({
       minLenght: v => v.length <= 8,
-      contains4: v => !v.includes("4")
+      contains4: v => !v.includes("4") && "myError"
     })
   });
 
-  t.deepEqual(scheme.validate(""), { errors: [{ type: "required" }] });
+  t.deepEqual(scheme.validate(""), { required: true });
   t.deepEqual(scheme.validate("sdfsf"), {
-    errors: [{ type: "minLenght" }, { type: "contains4" }]
+    minLenght: true,
+    contains4: "myError"
   });
+  t.deepEqual(scheme.validate("sdfsf").errors, [
+    { type: "minLenght" },
+    { type: "contains4", error: "myError" }
+  ]);
   t.deepEqual(scheme.validate("sdfsfsfsdfsdf"), {
-    errors: [{ type: "contains4" }]
+    contains4: "myError"
   });
   t.deepEqual(scheme.validate("sdfsfsf4sdfsdf"), null);
 
@@ -183,12 +249,13 @@ test("validate. list of values", t => {
     value: ["", "sdfsdf", "123123123"]
   });
   t.deepEqual(validationResult, {
-    value: [
-      { errors: [{ type: "required" }] },
-      { errors: [{ type: "minLenght" }] },
-      null
-    ]
+    value: [{ required: true }, { minLenght: true }, null]
   });
+
+  t.deepEqual(validationResult.errors, null);
+
+  t.deepEqual(validationResult.value[0], { required: true });
+  t.deepEqual(validationResult.value[0].errors, [{ type: "required" }]);
 
   t.deepEqual(
     scheme.validate({ value: ["qweasdzxc", "321311231", "123123123"] }),
@@ -217,10 +284,14 @@ test("validate. map of values", t => {
   });
   t.deepEqual(validationResult, {
     value: {
-      v1: { errors: [{ type: "required" }] },
-      v2: { errors: [{ type: "minLenght" }] }
+      v1: { required: true },
+      v2: { minLenght: true }
     }
   });
+
+  t.deepEqual(validationResult.errors, null);
+
+  t.deepEqual(validationResult.value.v1, { required: true });
 
   t.deepEqual(
     scheme.validate({
@@ -258,14 +329,14 @@ test("validate. simple value. falsy values", t => {
     init<string>()
       .rules({ zeroAsValue: () => 0 })
       .validate(""),
-    { errors: [{ type: "zeroAsValue", error: 0 }] }
+    { zeroAsValue: 0 }
   );
 
   t.deepEqual(
     init<string>()
       .rules({ emptyStringAsValue: () => "" })
       .validate(""),
-    { errors: [{ type: "emptyStringAsValue", error: "" }] }
+    { emptyStringAsValue: "" }
   );
 
   t.end();
@@ -290,14 +361,14 @@ test("validate. fields. falsy values", t => {
     init<{ f: string }>()
       .rules({ f: { zeroAsValue: () => 0 } })
       .validate({ f: "" }),
-    { f: { errors: [{ type: "zeroAsValue", error: 0 }] } }
+    { f: { zeroAsValue: 0 } }
   );
 
   t.deepEqual(
     init<{ f: string }>()
       .rules({ f: { emptyStringAsValue: () => "" } })
       .validate({ f: "" }),
-    { f: { errors: [{ type: "emptyStringAsValue", error: "" }] } }
+    { f: { emptyStringAsValue: "" } }
   );
 
   t.end();
@@ -322,14 +393,14 @@ test("validate. all of. falsy values", t => {
     init<{ f: string }>()
       .rules({ f: allOf({ zeroAsValue: () => 0 }) })
       .validate({ f: "" }),
-    { f: { errors: [{ type: "zeroAsValue", error: 0 }] } }
+    { f: { zeroAsValue: 0 } }
   );
 
   t.deepEqual(
     init<{ f: string }>()
       .rules({ f: allOf({ emptyStringAsValue: () => "" }) })
       .validate({ f: "" }),
-    { f: { errors: [{ type: "emptyStringAsValue", error: "" }] } }
+    { f: { emptyStringAsValue: "" } }
   );
 
   t.end();

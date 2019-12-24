@@ -1,3 +1,7 @@
+import { Result, getErrors } from "./result";
+
+export { getErrors };
+
 export type Rule<D, R = boolean> = (obj: D) => R;
 
 export type RuleError<K, R extends Rule<any, any>> = R extends (
@@ -48,7 +52,11 @@ export type ValidationResult<
   Data,
   Rules extends { [R: string]: Rule<Data, any> },
   Children extends { [F in keyof Data]?: ValidationScheme<Data[F], any> }
-> = null | (ChildResult<Children> & ErrorsOf<RulesErrors<any, Rules>>);
+> = null | Readonly<
+  ChildResult<Children> &
+    ErrorsOf<RulesErrors<any, Rules>> &
+    { [R in keyof Rules]?: ReturnType<Rules[R]> }
+>;
 
 export type SchemeRules<D> = Record<
   string,
@@ -147,7 +155,7 @@ class Builder<
       hasErrors = true;
     }
 
-    const errors: any = ownRulesErrors ? { errors: ownRulesErrors } : {};
+    const errors: any = new Result(ownRulesErrors || {});
 
     Object.keys(this._rules).forEach(key => {
       const res = (this._rules as any)[key].validate((data as any)[key]);
@@ -188,44 +196,36 @@ export function validateRules<D>(
     if ((rules[key] as any).isAllOfFlag === isAllOfFlag) {
       const allOfRules = rules[key](data);
 
-      const allErrors = Object.keys(allOfRules)
-        .map(ruleKey => {
-          const res = allOfRules[ruleKey](data);
-          if (res === false || res == null) {
-            return false;
-          }
+      const allErrors: any = {};
+      let hasError = false;
+      Object.keys(allOfRules).forEach(ruleKey => {
+        const res = allOfRules[ruleKey](data);
+        if (res === false || res == null) {
+          return;
+        }
+        hasError = true;
+        allErrors[ruleKey] = res;
+      });
 
-          return getError(ruleKey, res);
-        })
-        .filter(Boolean);
-
-      if (allErrors.length > 0) {
+      if (hasError) {
         errors = allErrors;
         return true;
       }
 
       return false;
     }
+
     const result = rules[key](data);
     if (result === false || result == null) {
       return false;
     }
 
-    errors = [getError(key, result)];
+    errors = { [key]: result };
 
     return true;
   });
 
   return errors;
-}
-
-function getError(key: string, result: any) {
-  return result === true
-    ? { type: key }
-    : {
-        type: key,
-        error: result
-      };
 }
 
 // все из списка правил

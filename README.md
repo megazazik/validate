@@ -20,18 +20,31 @@ const myScheme = init().rules({
 });
 ```
 
-Each rule should return `false`, `undefined` or `null` if data is correct. If data has errors a rule should return `true` or any other value with meta of error.
+Each rule should return `false`, `undefined` or `null` if data is correct. If data has errors a rule should return `true` or any other value with meta data of error.
 
 A scheme has the `validate` method. It returns `null` if data is correct or an object with errors.
 
 ```js
 myScheme.validate({ value: "" });
-// {value: {errors: [{type: 'required'}]}}
+// {value: {required: true}}
 
 myScheme.validate({ value: "123" });
-// {value: {errors: [{type: 'minLenght', error: {length: 3}]}}}
+// {value: {minLenght: {length: 3}}}
 
 myScheme.validate({ value: "123456789" });
+// null
+```
+
+You can also get errors of each property as an array of objects with fields `type` and `error`. To do that use a `errors` getter of a validation result prototype.
+
+```js
+myScheme.validate({ value: "" })?.value?.errors;
+// [{type: 'required'}]
+
+myScheme.validate({ value: "123" })?.value?.errors;
+// [{type: 'minLenght', error: {length: 3}]
+
+myScheme.validate({ value: "123456789" })?.value?.errors;
 // null
 ```
 
@@ -54,7 +67,7 @@ const parentScheme = init().rules({
 });
 
 parentScheme.validate({ child: { value: "" } });
-// {child: {value: {errors: [{type: 'required'}]}}}
+// {child: {value: {required: true}}}
 ```
 
 ## Rules for a whole object
@@ -72,10 +85,10 @@ const myStringScheme = init().rules({
 });
 
 myStringScheme.validate("");
-// {errors: [{type: 'required'}]}
+// {required: true}
 
 myStringScheme.validate("123");
-// {errors: [{type: 'minLenght'}]}
+// {minLenght: true}
 
 myStringScheme.validate("123456789");
 // null
@@ -92,19 +105,23 @@ const myObjectScheme = init().rules({
     required: str => !str,
     minLenght: str => str.length <= 8
   },
-  // in this case the valueRequired rule duplicates the 'require' rule from of 'value' property
+  // in this case the valueRequired rule duplicates the 'required' rule from the 'value' property
   valueRequired: obj => !obj.value
 });
 
 const result = myObjectScheme.validate({ value: "" });
-// errors of whole object rules is an array
-console.log(result.errors[0]); // {type: 'valueRequired'}
-// errors of property rules can be accessed via properties
+// {valueRequired: true, value: {required: true}}
+
+// you can get errors of whole object via errors getter. It DOES NOT contains errors of properties
+console.log(result.errors); // [{type: 'valueRequired'}]
+// errors of property rules can be accessed via its own errors getter
 console.log(result.value.errors); // [ {type: 'required'} ]
 
-// if object has no own errors then the length of result array is 0
 const result2 = myObjectScheme.validate({ value: "123" });
-console.log(result2.errors.length); // 0
+// {value: {minLenght: {length: 3}}}
+
+// if object has no own errors then errors getter returns null
+console.log(result2.errors); // null
 // and errors of property rules can be still accessed via properties
 console.log(result2.value.errors); // [ {type: 'minLenght', error: {length: 3} ]
 
@@ -136,8 +153,8 @@ const errors = myObjectScheme.validate({
 
 console.log(errors.values);
 // [
-//   {errors: [{ type: "required" }]},
-//   {errors: [{ type: "minLenght" }]},
+//   {required: true},
+//   {minLenght: true},
 //   null
 // ]
 ```
@@ -165,8 +182,8 @@ const errors = myObjectScheme.validate({
 
 console.log(errors.values);
 // {
-//   v1: {errors: [{ type: "required" }]},
-//   v2: {errors: [{ type: "minLenght" }]}
+//   v1: {required: true},
+//   v2: {minLenght: true}
 // }
 ```
 
@@ -183,6 +200,9 @@ const myScheme = init().rules({
     minLenght: str => str.length <= 8
   }
 });
+
+myScheme.validate("");
+// {required: true}
 ```
 
 If you need to receive all errors of scheme you can use the `allOf` function. Then all rules will be checked and all errors will be returned.
@@ -198,4 +218,7 @@ const myScheme = init().rules({
     })
   }
 });
+
+myScheme.validate("");
+// {required: true, minLenght: true}
 ```
