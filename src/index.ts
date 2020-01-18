@@ -2,7 +2,10 @@ import { Result, getErrors } from "./result";
 
 export { getErrors };
 
-export type Rule<D, R = boolean> = (obj: D) => R;
+export type Rule<D, R = boolean, FullData = any> = (
+  obj: D,
+  fullData?: FullData
+) => R;
 
 export type RuleError<K, R extends Rule<any, any>> = R extends (
   data: any
@@ -10,20 +13,20 @@ export type RuleError<K, R extends Rule<any, any>> = R extends (
   ? { type: K }
   : { type: K; error: ReturnType<R> };
 
-export type ObjectRules<T> = {
-  [R: string]: Rule<T, any>;
+export type ObjectRules<T, FullData> = {
+  [R: string]: Rule<T, any, FullData>;
 };
 
-export type RulesErrors<T, Rules extends ObjectRules<T>> = {
+export type RulesErrors<T, Rules extends ObjectRules<T, any>> = {
   [R in keyof Rules]: RuleError<R, Rules[R]>;
 };
 
-export type ValidationScheme<Data, Result> = {
-  validate(data: Data): null | Result;
+export type ValidationScheme<Data, Result, FullData = any> = {
+  validate(data: Data, fullData?: FullData): null | Result;
 };
 
 type ChildrenRules<T> = {
-  [F in keyof T]?: ValidationScheme<T[F], any> | ObjectRules<T[F]>;
+  [F in keyof T]?: ValidationScheme<T[F], any, T> | ObjectRules<T[F], T>;
 };
 
 type ObjectRulesNames<D, C extends SchemeRules<D>> = {
@@ -43,15 +46,17 @@ type CheckIfEmptyKeys<Keys, Success, Wrong> = Wrong extends (Keys extends never
 type ErrorsOf<T> = { errors: Array<T[keyof T]> };
 
 export type ChildResult<
-  Children extends { [F: string]: ValidationScheme<any, any> }
+  Children extends { [F: string]: undefined | ValidationScheme<any, any> }
 > = {
-  [F in keyof Children]?: ReturnType<Children[F]["validate"]>;
+  [F in keyof Children]?: Children[F] extends ValidationScheme<any, any>
+    ? ReturnType<Children[F]["validate"]>
+    : never;
 };
 
 export type ValidationResult<
   Data,
   Rules extends { [R: string]: Rule<Data, any> },
-  Children extends { [F in keyof Data]?: ValidationScheme<Data[F], any> }
+  Children extends { [F in keyof Data]?: ValidationScheme<Data[F], any, Data> }
 > = null | Readonly<
   ChildResult<Children> &
     ErrorsOf<RulesErrors<any, Rules>> &
@@ -60,15 +65,15 @@ export type ValidationResult<
 
 export type SchemeRules<D> = Record<
   string,
-  | Rule<D, any>
-  | ValidationScheme<unknown, any>
-  | { [R: string]: Rule<unknown, any> }
+  Rule<D, any> | ValidationScheme<any, any> | { [R: string]: Rule<any, any, D> }
 >;
 
 export interface Scheme<
   Data,
-  Rules extends ObjectRules<Data>,
-  Children extends { [F in keyof Data]?: ValidationScheme<Data[F], any> } = {}
+  Rules extends ObjectRules<Data, unknown>,
+  Children extends {
+    [F in keyof Data]?: ValidationScheme<Data[F], any, Data>;
+  } = {}
 > {
   validate(data: Data): ValidationResult<Data, Rules, Children>;
   rules<C extends SchemeRules<Data>>(
@@ -85,7 +90,10 @@ export interface Scheme<
   >;
 }
 
-export interface PrimitiveScheme<Data, Rules extends ObjectRules<Data>> {
+export interface PrimitiveScheme<
+  Data,
+  Rules extends ObjectRules<Data, unknown>
+> {
   validate(data: Data): ValidationResult<Data, Rules, {}>;
   rules<Rules extends Record<string, Rule<Data, any>>>(
     children: Rules
@@ -100,9 +108,14 @@ export type ChildrenSchemes<Data, Rules extends ChildrenRules<any>> = {
 };
 
 export type ChildScheme<
-  C extends ValidationScheme<any, any> | { [R: string]: Rule<any, any> },
+  C extends
+    | ValidationScheme<any, any>
+    | { [R: string]: Rule<any, any> }
+    | undefined,
   Data
-> = C extends ValidationScheme<any, any> ? C : Scheme<Data, C, {}>;
+> = C extends ValidationScheme<any, any>
+  ? C
+  : Scheme<Data, C extends undefined ? {} : C, {}>;
 
 export function init<Data>(): Data extends object
   ? Scheme<Data, {}, {}>
@@ -125,7 +138,9 @@ export type ChildrenOfScheme<
 class Builder<
   Data,
   Rules extends { [R: string]: Rule<Data, any> },
-  Children extends { [F in keyof Data]?: ValidationScheme<Data[F], any> } = {}
+  Children extends {
+    [F in keyof Data]?: ValidationScheme<Data[F], any, Data>;
+  } = {}
 > implements Scheme<Data, Rules, Children> {
   constructor(private _fullObjectRules: Rules, private _rules: Children) {}
 
@@ -248,7 +263,7 @@ export function allOf<T, Rules extends { [R: string]: Rule<T, any> }>(
 
 // правила для массивов
 
-export function list<S extends ValidationScheme<Data, any>, Data>(
+export function list<S extends ValidationScheme<Data, any, Data[]>, Data>(
   scheme: S
 ): ValidationScheme<Data[], Array<ReturnType<S["validate"]>>> {
   return {
@@ -268,7 +283,10 @@ export function list<S extends ValidationScheme<Data, any>, Data>(
 
 // правила для объектов
 
-export function map<S extends ValidationScheme<Data, any>, Data>(
+export function map<
+  S extends ValidationScheme<Data, any, Record<string, Data>>,
+  Data
+>(
   scheme: S
 ): ValidationScheme<
   Record<string, Data>,

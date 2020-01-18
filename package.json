@@ -7,11 +7,12 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc && tsc -p tsconfig.es.json",
-    "version": "npm run build && conventional-changelog -p angular -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
+    "version": "npm run test && npm run tsd && npm run build && conventional-changelog -p angular -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
     "commit": "git-cz",
     "test": "sh default -d src/**/*.spec.* -c tape",
     "tape": "ts-node node_modules/tape/bin/tape",
-    "test-w": "nodemon -e js,jsx,ts,tsx,json --exec npm run test"
+    "tsd": "tsd",
+    "w": "nodemon -e js,jsx,ts,tsx,json --exec npm run"
   },
   "keywords": [
     "validate",
@@ -26,6 +27,7 @@
     "cz-conventional-changelog": "^3.0.2",
     "tape": "^4.11.0",
     "ts-node": "^8.4.1",
+    "tsd": "^0.11.0",
     "typescript": "^3.7.4"
   },
   "config": {
@@ -40,8 +42,12 @@
   "homepage": "https://github.com/megazazik/validate",
   "files": [
     "dist",
+    "dist/index.d.ts",
     "dist-es",
     "CHANGELOG.md",
     "README.md"
-  ]
+  ],
+  "tsd": {
+    "directory": "src/tests-d"
+  }
 }
