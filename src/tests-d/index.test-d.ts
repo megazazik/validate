@@ -1,5 +1,5 @@
 import { expectType, expectError } from 'tsd';
-import { init } from '..';
+import { init, list, map } from '..';
 
 /** Simple value */
 expectType<Readonly<{
@@ -240,5 +240,3 @@ expectType<'Wrong type of rules. Check the following fields:' | 'd'>(
 		}
 	})
 );
-
-/** @todo типы для list и map */

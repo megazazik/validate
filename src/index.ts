@@ -304,14 +304,24 @@ export function allOf<
 
 // правила для массивов
 
-export function list<S extends ValidationScheme<Data, any, Data[]>, Data>(
-	scheme: S
-): ValidationScheme<Data[], Array<ReturnType<S['validate']>>> {
+export function list<Data, Result, Meta = undefined>(
+	scheme: ValidationScheme<
+		Data,
+		Result,
+		{
+			data: Data[];
+			meta: Meta;
+			index: number;
+		}
+	>
+): ValidationScheme<Data[], Array<Result | null>, Meta> {
 	return {
-		validate: (data: Data[]) => {
+		validate: (
+			...args: Meta extends undefined ? [Data[], any?] : [Data[], Meta]
+		) => {
 			let hasError = false;
-			const result = data.map(d => {
-				const res = scheme.validate(d, data);
+			const result = args[0].map(d => {
+				const res = scheme.validate(d, args[1]);
 				if (res) {
 					hasError = true;
 				}
@@ -324,20 +334,26 @@ export function list<S extends ValidationScheme<Data, any, Data[]>, Data>(
 
 // правила для объектов
 
-export function map<
-	S extends ValidationScheme<Data, any, Record<string, Data>>,
-	Data
->(
-	scheme: S
-): ValidationScheme<
-	Record<string, Data>,
-	Record<string, ReturnType<S['validate']>>
-> {
+export function map<Data, Result, Meta = undefined>(
+	scheme: ValidationScheme<
+		Data,
+		Result,
+		{
+			fieldName: string;
+			meta: Meta;
+			data: Record<string, Data>;
+		}
+	>
+): ValidationScheme<Record<string, Data>, Record<string, Result | null>, Meta> {
 	return {
-		validate: (data: { [name: string]: Data }) => {
+		validate: (
+			...args: Meta extends undefined
+				? [Record<string, Data>, any?]
+				: [Record<string, Data>, Meta]
+		) => {
 			let hasError = false;
-			const result = Object.keys(data).reduce((prev, name) => {
-				const res = scheme.validate(data[name], data);
+			const result = Object.keys(args[0]).reduce((prev, name) => {
+				const res = scheme.validate(args[0][name], args[1]);
 
 				if (res) {
 					hasError = true;

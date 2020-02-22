@@ -166,7 +166,7 @@ test('meta. allof. field rules', t => {
 	t.end();
 });
 
-// test('fullData to rule. list of values', t => {
+// test('meta. list', t => {
 // 	type T = { value: string[] };
 
 // 	const stringScheme = init<string>().rules({
