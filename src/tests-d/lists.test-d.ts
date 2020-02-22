@@ -29,7 +29,7 @@ expectType<Array<Readonly<{
 
 expectError(
 	list(
-		init<string, { meta: string }>().rules({
+		init<string, { meta: string; data: string[]; index: number }>().rules({
 			required() {
 				return false;
 			}
@@ -69,9 +69,19 @@ expectType<Record<
 	).validate({}, 'sdf')
 );
 
+expectType<Record<string, boolean | null> | null>(
+	map({ validate: (d: string, meta: { meta: string }) => false }).validate(
+		{},
+		'sdf'
+	)
+);
+
 expectError(
 	map(
-		init<string, { meta: string }>().rules({
+		init<
+			string,
+			{ meta: string; data: Record<string, string>; fieldName: string }
+		>().rules({
 			required() {
 				return false;
 			}

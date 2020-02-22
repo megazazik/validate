@@ -166,38 +166,54 @@ test('meta. allof. field rules', t => {
 	t.end();
 });
 
-// test('meta. list', t => {
-// 	type T = { value: string[] };
+test('meta. list', t => {
+	const scheme = {
+		validate: spy((data: string, meta: any) => false)
+	};
 
-// 	const stringScheme = init<string>().rules({
-// 		required: v => !v,
-// 		minLenght: v => v.length <= 8
-// 	});
+	const data = ['', 'sdfsdf', '123123123'];
+	list(scheme).validate(data, 20);
 
-// 	const scheme = init<T>().rules({
-// 		value: list(stringScheme)
-// 	});
+	t.equal(scheme.validate.args[0][0], '');
+	t.equal(scheme.validate.args[0][1].meta, 20);
+	t.equal(scheme.validate.args[0][1].index, 0);
+	t.equal(scheme.validate.args[0][1].data, data);
 
-// 	const validationResult = scheme.validate({
-// 		value: ['', 'sdfsdf', '123123123']
-// 	});
-// 	t.deepEqual(validationResult, {
-// 		value: [{ required: true }, { minLenght: true }, null]
-// 	});
+	t.equal(scheme.validate.args[1][0], 'sdfsdf');
+	t.equal(scheme.validate.args[1][1].meta, 20);
+	t.equal(scheme.validate.args[1][1].index, 1);
+	t.equal(scheme.validate.args[1][1].data, data);
 
-// 	t.deepEqual(validationResult.errors, null);
+	t.equal(scheme.validate.args[2][0], '123123123');
+	t.equal(scheme.validate.args[2][1].meta, 20);
+	t.equal(scheme.validate.args[2][1].index, 2);
+	t.equal(scheme.validate.args[2][1].data, data);
 
-// 	t.deepEqual(validationResult.value[0], { required: true });
-// 	t.deepEqual(validationResult.value[0].errors, [{ type: 'required' }]);
+	t.end();
+});
 
-// 	t.deepEqual(
-// 		scheme.validate({ value: ['qweasdzxc', '321311231', '123123123'] }),
-// 		null
-// 	);
+test('meta. map', t => {
+	const scheme = {
+		validate: spy((data: string, meta: any) => false)
+	};
 
-// 	t.deepEqual(scheme.validate({ value: [] }), null);
+	const data = { p1: '', p2: 'sdfsdf', p3: '123123123' };
+	map(scheme).validate(data, 20);
 
-// 	t.end();
-// });
+	t.equal(scheme.validate.args[0][0], '');
+	t.equal(scheme.validate.args[0][1].meta, 20);
+	t.equal(scheme.validate.args[0][1].fieldName, 'p1');
+	t.equal(scheme.validate.args[0][1].data, data);
 
-/** @todo map */
+	t.equal(scheme.validate.args[1][0], 'sdfsdf');
+	t.equal(scheme.validate.args[1][1].meta, 20);
+	t.equal(scheme.validate.args[1][1].fieldName, 'p2');
+	t.equal(scheme.validate.args[1][1].data, data);
+
+	t.equal(scheme.validate.args[2][0], '123123123');
+	t.equal(scheme.validate.args[2][1].meta, 20);
+	t.equal(scheme.validate.args[2][1].fieldName, 'p3');
+	t.equal(scheme.validate.args[2][1].data, data);
+
+	t.end();
+});

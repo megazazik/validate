@@ -320,8 +320,12 @@ export function list<Data, Result, Meta = undefined>(
 			...args: Meta extends undefined ? [Data[], any?] : [Data[], Meta]
 		) => {
 			let hasError = false;
-			const result = args[0].map(d => {
-				const res = scheme.validate(d, args[1]);
+			const result = args[0].map((d, index) => {
+				const res = scheme.validate(d, {
+					meta: args[1],
+					data: args[0],
+					index
+				});
 				if (res) {
 					hasError = true;
 				}
@@ -353,7 +357,11 @@ export function map<Data, Result, Meta = undefined>(
 		) => {
 			let hasError = false;
 			const result = Object.keys(args[0]).reduce((prev, name) => {
-				const res = scheme.validate(args[0][name], args[1]);
+				const res = scheme.validate(args[0][name], {
+					meta: args[1],
+					data: args[0],
+					fieldName: name
+				});
 
 				if (res) {
 					hasError = true;
@@ -368,3 +376,12 @@ export function map<Data, Result, Meta = undefined>(
 		}
 	};
 }
+
+export const passMeta = <Data, Result, Meta, Key extends string>(
+	key: Key,
+	scheme: ValidationScheme<Data, Result, Meta>
+): ValidationScheme<Data, Result, { [K in Key]: Meta }> => ({
+	validate(data: Data, meta?: { [K in Key]: Meta }) {
+		return (scheme as any).validate(data, meta?.[key]);
+	}
+});
