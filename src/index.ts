@@ -50,7 +50,7 @@ type CheckIfEmptyKeys<Keys, Success, Wrong> = Wrong extends (Keys extends never
 	? Wrong
 	: Success;
 
-type ErrorsOf<T> = { errors: Array<T[keyof T]> };
+type ErrorsOf<T> = { errors: Array<T[keyof T]> | null };
 
 export type ChildResult<
 	Children extends {
@@ -377,11 +377,24 @@ export function map<Data, Result, Meta = undefined>(
 	};
 }
 
-export const passMeta = <Data, Result, Meta, Key extends string>(
+export function passMeta<Data, Result, Meta, Key extends string>(
 	key: Key,
 	scheme: ValidationScheme<Data, Result, Meta>
-): ValidationScheme<Data, Result, { [K in Key]: Meta }> => ({
-	validate(data: Data, meta?: { [K in Key]: Meta }) {
-		return (scheme as any).validate(data, meta?.[key]);
-	}
-});
+): ValidationScheme<Data, Result, { [K in Key]: Meta }>;
+export function passMeta<Data, Result, Meta, NewMeta>(
+	key: (meta: NewMeta) => Meta,
+	scheme: ValidationScheme<Data, Result, Meta>
+): ValidationScheme<Data, Result, NewMeta>;
+export function passMeta<Data, Result, Meta>(
+	key: string | ((m: any) => any),
+	scheme: ValidationScheme<Data, Result, Meta>
+) {
+	return {
+		validate(data: Data, meta?: any) {
+			return (scheme as any).validate(
+				data,
+				typeof key === 'string' ? meta?.[key] : key(meta)
+			);
+		}
+	};
+}

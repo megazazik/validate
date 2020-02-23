@@ -17,5 +17,10 @@ test('meta. own rule', t => {
 	t.equal(scheme.validate.args[1][0], 'myData2');
 	t.equal(scheme.validate.args[1][1], false);
 
+	passMeta((m: number) => m * 2, scheme).validate('myData3', 312);
+
+	t.equal(scheme.validate.args[2][0], 'myData3');
+	t.equal(scheme.validate.args[2][1], 624);
+
 	t.end();
 });

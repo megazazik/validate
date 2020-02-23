@@ -13,7 +13,7 @@ expectType<Readonly<{
 		| {
 				type: 'noType';
 		  }
-	>;
+	> | null;
 	required?: boolean;
 	maxLength?: boolean;
 	noType?: boolean;
@@ -39,7 +39,7 @@ expectType<Readonly<{
 		| {
 				type: 'noType';
 		  }
-	>;
+	> | null;
 	required?: boolean;
 	maxLength?: boolean;
 	noType?: boolean;
@@ -68,7 +68,7 @@ expectType<Readonly<{
 				type: 'noType';
 				error: { data: number };
 		  }
-	>;
+	> | null;
 	required?: number;
 	maxLength?: string;
 	noType?: { data: number };
@@ -84,7 +84,7 @@ expectType<Readonly<{
 
 /** object */
 expectType<Readonly<{
-	errors: never[];
+	errors: never[] | null;
 	value?: Readonly<{
 		errors: Array<
 			| {
@@ -133,7 +133,7 @@ expectType<Readonly<{
 
 /** nested schemes */
 expectType<Readonly<{
-	errors: never[];
+	errors: never[] | null;
 	value?: Readonly<{
 		errors: Array<
 			| {
@@ -165,7 +165,7 @@ expectType<Readonly<{
 
 /** nested schemes - own realization scheme */
 expectType<Readonly<{
-	errors: never[];
+	errors: never[] | null;
 	value?: { valueErrors: boolean };
 }> | null>(
 	init<{ value: string }>()
@@ -177,7 +177,7 @@ expectType<Readonly<{
 
 /** nested schemes - own realization scheme with full object */
 expectType<Readonly<{
-	errors: never[];
+	errors: never[] | null;
 	value?: { valueErrors: boolean };
 	value2?: { valueErrors: boolean };
 }> | null>(
