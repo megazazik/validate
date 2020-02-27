@@ -2,6 +2,7 @@ import test from 'tape';
 import { spy } from 'sinon';
 import { passMeta } from '..';
 
+/** @todo удалить? */
 test('meta. own rule', t => {
 	const scheme = {
 		validate: spy((value: string, meta: any) => !value)

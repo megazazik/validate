@@ -12,7 +12,10 @@ export type RuleError<K, R extends Rule<any, any, any>> = R extends (
 	? { type: K }
 	: { type: K; error: ReturnType<R> };
 
-export type ObjectRules<T, Meta> = Record<string, Rule<T, any, Meta>>;
+export type ObjectRules<T, Meta = undefined> = Record<
+	string,
+	Rule<T, any, Meta>
+>;
 
 export type RulesErrors<T, Rules extends ObjectRules<T, any>> = {
 	[R in keyof Rules]: RuleError<R, Rules[R]>;
@@ -85,7 +88,11 @@ export interface Scheme<
 	Data,
 	Rules extends ObjectRules<Data, Meta>,
 	Children extends {
-		[F in keyof Data]?: ValidationScheme<Data[F], any, Data>;
+		[F in keyof Data]?: ValidationScheme<
+			Data[F],
+			any,
+			ChildMeta<Data, Meta>
+		>;
 	} = {},
 	Meta = undefined
 >
@@ -101,12 +108,36 @@ export interface Scheme<
 		Scheme<
 			Data,
 			Rules & Pick<C, ObjectRulesNames<Data, C>>,
-			Children & ChildrenSchemes<Data, Pick<C, ChildRulesNames<Data, C>>>,
+			Children &
+				ChildrenSchemes<
+					Data,
+					Pick<C, ChildRulesNames<Data, C>>,
+					ChildMeta<Data, Meta>
+				>,
 			Meta
 		>,
 		| 'Wrong type of rules. Check the following fields:'
 		| Exclude<keyof C, ChildRulesNames<Data, C> | ObjectRulesNames<Data, C>>
 	>;
+	rules<C extends SchemeRules<Data, Meta>>(
+		children: (rules: Rules & Children) => C & ChildrenRules<Data, Meta>
+	): CheckIfEmptyKeys<
+		Exclude<keyof C, ChildRulesNames<Data, C> | ObjectRulesNames<Data, C>>,
+		Scheme<
+			Data,
+			Rules & Pick<C, ObjectRulesNames<Data, C>>,
+			Children &
+				ChildrenSchemes<
+					Data,
+					Pick<C, ChildRulesNames<Data, C>>,
+					ChildMeta<Data, Meta>
+				>,
+			Meta
+		>,
+		| 'Wrong type of rules. Check the following fields:'
+		| Exclude<keyof C, ChildRulesNames<Data, C> | ObjectRulesNames<Data, C>>
+	>;
+	getRules(): Rules & Children;
 }
 
 export interface PrimitiveScheme<
@@ -117,12 +148,18 @@ export interface PrimitiveScheme<
 	rules<NewRules extends Record<string, Rule<Data, any, Meta>>>(
 		children: NewRules
 	): PrimitiveScheme<Data, Rules & NewRules, Meta>;
+	getRules(): Rules;
 }
 
-export type ChildrenSchemes<Data, Rules extends ChildrenRules<any, any>> = {
+export type ChildrenSchemes<
+	Data,
+	Rules extends ChildrenRules<any, any>,
+	Meta
+> = {
 	[Child in keyof Rules]: ChildScheme<
 		Rules[Child],
-		Child extends keyof Data ? Data[Child] : any
+		Child extends keyof Data ? Data[Child] : any,
+		Meta
 	>;
 };
 
@@ -131,15 +168,30 @@ export type ChildScheme<
 		| ValidationScheme<any, any, any>
 		| { [R: string]: Rule<any, any, any> }
 		| undefined,
-	Data
+	Data,
+	Meta
 > = C extends ValidationScheme<any, any>
 	? C
-	: Scheme<Data, C extends undefined ? {} : C, {}>;
+	: Data extends object
+	? Scheme<
+			Data,
+			C extends Record<string, Rule<any, any, Meta>> ? C : {},
+			{},
+			Meta
+	  >
+	: PrimitiveScheme<Data, C extends undefined ? {} : C, Meta>;
 
 export function init<Data, Meta = undefined>(): Data extends object
 	? Scheme<Data, {}, {}, Meta>
+	: PrimitiveScheme<Data, {}, Meta>;
+
+export function init<Data, Meta = undefined>(
+	rules = {},
+	schemes = {}
+): Data extends object
+	? Scheme<Data, {}, {}, Meta>
 	: PrimitiveScheme<Data, {}, Meta> {
-	return new Builder<Data, {}, {}>({}, {}) as any;
+	return new Builder<Data, {}, {}>(rules, schemes) as any;
 }
 
 export type RulesOfScheme<S extends Scheme<any, any, any>> = S extends Scheme<
@@ -158,16 +210,26 @@ class Builder<
 	Data,
 	Rules extends { [R: string]: Rule<Data, any, Meta> },
 	Children extends {
-		[F in keyof Data]?: ValidationScheme<Data[F], any, Data>;
+		[F in keyof Data]?: ValidationScheme<
+			Data[F],
+			any,
+			ChildMeta<Data, Meta>
+		>;
 	} = {},
 	Meta = undefined
 > implements Scheme<Data, Rules, Children, Meta> {
 	constructor(private _fullObjectRules: Rules, private _rules: Children) {}
 
 	rules<C extends SchemeRules<Data, Meta>>(
-		fullRules: C & ChildrenRules<Data, Meta>
+		fullRules:
+			| (C & ChildrenRules<Data, Meta>)
+			| ((rules: Rules & Children) => C & ChildrenRules<Data, Meta>)
 	) {
-		const [childrenRules, rules] = separateRules(fullRules);
+		const [childrenRules, rules] = separateRules(
+			typeof fullRules === 'function'
+				? fullRules(this.getRules())
+				: fullRules
+		);
 		const convertedRules = Object.keys(childrenRules).reduce(
 			(prev, propertyName) => ({
 				...prev,
@@ -203,21 +265,28 @@ class Builder<
 
 		const errors: any = new Result(ownRulesErrors || {});
 
-		Object.keys(this._rules).forEach(key => {
-			const res = (this._rules as any)[key].validate(
-				(args[0] as any)[key],
-				{
-					data: args[0],
-					meta: args[1],
-					fieldName: key
+		if (args[0] != null) {
+			Object.keys(this._rules).forEach(key => {
+				const res = (this._rules as any)[key].validate(
+					(args[0] as any)[key],
+					{
+						data: args[0],
+						meta: args[1],
+						fieldName: key
+					}
+				);
+				if (res) {
+					hasErrors = true;
+					errors[key] = res;
 				}
-			);
-			if (res) {
-				hasErrors = true;
-				errors[key] = res;
-			}
-		});
+			});
+		}
+
 		return hasErrors ? errors : null;
+	}
+
+	getRules(): Rules & Children {
+		return { ...this._fullObjectRules, ...this._rules };
 	}
 }
 
