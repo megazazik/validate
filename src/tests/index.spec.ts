@@ -9,11 +9,15 @@ test('validate. simple value', t => {
 		minLenght: v => v.length <= 8
 	});
 
-	t.deepEqual(scheme.validate('')?.errors, [{ type: 'required' }]);
+	t.deepEqual(scheme.validate('')?.errors, [
+		{ type: 'required', data: true }
+	]);
 	t.deepEqual(Object.keys(scheme.validate('')), ['required']);
 	t.deepEqual(scheme.validate('').required, true);
 	t.deepEqual(scheme.validate(''), { required: true });
-	t.deepEqual(scheme.validate('sdfsf')?.errors, [{ type: 'minLenght' }]);
+	t.deepEqual(scheme.validate('sdfsf')?.errors, [
+		{ type: 'minLenght', data: true }
+	]);
 	t.deepEqual(scheme.validate('sdfsf').minLenght, true);
 	t.deepEqual(scheme.validate('sdfsf'), { minLenght: true });
 	t.equal(scheme.validate('sdfsfsfsdfsdf'), null);
@@ -38,7 +42,7 @@ test('validate. nested rules via scheme', t => {
 		value: { required: true }
 	});
 
-	t.deepEqual(result1.value.errors, [{ type: 'required' }]);
+	t.deepEqual(result1.value.errors, [{ type: 'required', data: true }]);
 
 	t.deepEqual(scheme.validate({ value: 'sdfsf' }).errors, null);
 
@@ -47,7 +51,7 @@ test('validate. nested rules via scheme', t => {
 	});
 
 	t.deepEqual(scheme.validate({ value: 'sdfsf' }).value.errors, [
-		{ type: 'minLenght' }
+		{ type: 'minLenght', data: true }
 	]);
 
 	t.deepEqual(scheme.validate({ value: 'sdfsfsfsdfsdf' }), null);
@@ -73,13 +77,13 @@ test('validate. nested rules via scheme. getErrors', t => {
 	});
 
 	t.deepEqual(getErrors(scheme.validate({ value: '' }).value), [
-		{ type: 'required' }
+		{ type: 'required', data: true }
 	]);
 
 	t.deepEqual(getErrors(scheme.validate({ value: 'sdfsf' })), null);
 
 	t.deepEqual(getErrors(scheme.validate({ value: 'sdfsf' }).value), [
-		{ type: 'minLenght' }
+		{ type: 'minLenght', data: true }
 	]);
 
 	t.end();
@@ -100,7 +104,7 @@ test('validate. nested rules', t => {
 	});
 
 	t.deepEqual(scheme.validate({ value: '' }).value.errors, [
-		{ type: 'required' }
+		{ type: 'required', data: true }
 	]);
 
 	const res = scheme.validate({ value: 'sdfsf' });
@@ -108,7 +112,7 @@ test('validate. nested rules', t => {
 		value: { minLenght: true }
 	});
 
-	t.deepEqual(res.value.errors, [{ type: 'minLenght' }]);
+	t.deepEqual(res.value.errors, [{ type: 'minLenght', data: true }]);
 
 	t.deepEqual(scheme.validate({ value: 'sdfsfsfsdfsdf' }), null);
 
@@ -136,9 +140,9 @@ test('validate. nested value with own props', t => {
 		valueRequired: true
 	});
 
-	t.deepEqual(res.errors, [{ type: 'valueRequired' }]);
+	t.deepEqual(res.errors, [{ type: 'valueRequired', data: true }]);
 
-	t.deepEqual(res.value.errors, [{ type: 'required' }]);
+	t.deepEqual(res.value.errors, [{ type: 'required', data: true }]);
 
 	t.deepEqual(
 		scheme.validate({
@@ -181,11 +185,11 @@ test('validate. not boolean result', t => {
 	});
 
 	t.deepEqual(res.errors, [
-		{ type: 'valueRequired', error: 'valueRequiredError' }
+		{ type: 'valueRequired', data: 'valueRequiredError' }
 	]);
 
 	t.deepEqual(res.value.errors, [
-		{ type: 'required', error: { text: 'empty' } }
+		{ type: 'required', data: { text: 'empty' } }
 	]);
 
 	t.deepEqual(
@@ -223,8 +227,8 @@ test('validate. all rules of list', t => {
 		contains4: 'myError'
 	});
 	t.deepEqual(scheme.validate('sdfsf').errors, [
-		{ type: 'minLenght' },
-		{ type: 'contains4', error: 'myError' }
+		{ type: 'minLenght', data: true },
+		{ type: 'contains4', data: 'myError' }
 	]);
 	t.deepEqual(scheme.validate('sdfsfsfsdfsdf'), {
 		contains4: 'myError'
@@ -256,7 +260,9 @@ test('validate. list of values', t => {
 	t.deepEqual(validationResult.errors, null);
 
 	t.deepEqual(validationResult.value[0], { required: true });
-	t.deepEqual(validationResult.value[0].errors, [{ type: 'required' }]);
+	t.deepEqual(validationResult.value[0].errors, [
+		{ type: 'required', data: true }
+	]);
 
 	t.deepEqual(
 		scheme.validate({ value: ['qweasdzxc', '321311231', '123123123'] }),
@@ -286,7 +292,8 @@ test('validate. map of values', t => {
 	t.deepEqual(validationResult, {
 		value: {
 			v1: { required: true },
-			v2: { minLenght: true }
+			v2: { minLenght: true },
+			v3: null
 		}
 	});
 

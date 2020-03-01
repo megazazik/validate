@@ -35,9 +35,11 @@ expectType<Readonly<{
 	errors: Array<
 		| {
 				type: 'required';
+				data: boolean;
 		  }
 		| {
 				type: 'maxLength';
+				data: boolean;
 		  }
 	> | null;
 	required?: boolean;
@@ -57,17 +59,18 @@ expectType<Readonly<{
 expectType<Readonly<{
 	errors: Array<{
 		type: 'required';
-		error: string;
+		data: string;
 	}> | null;
 	required?: string;
 	value?: Readonly<{
 		errors: Array<
 			| {
 					type: 'required';
-					error: string;
+					data: string;
 			  }
 			| {
 					type: 'maxLength';
+					data: boolean;
 			  }
 		>;
 		required?: string;

@@ -19,12 +19,10 @@ export class Result {
 }
 
 function getError(key: string, result: any) {
-	return result === true
-		? { type: key }
-		: {
-				type: key,
-				error: result
-		  };
+	return {
+		type: key,
+		data: result
+	};
 }
 
 export function getErrors(result: any) {

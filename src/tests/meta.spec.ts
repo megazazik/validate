@@ -9,7 +9,9 @@ test('meta. own rule', t => {
 		required: rule
 	});
 
-	t.deepEqual(scheme.validate('', 10).errors, [{ type: 'required' }]);
+	t.deepEqual(scheme.validate('', 10).errors, [
+		{ type: 'required', data: true }
+	]);
 
 	t.equal(rule.args[0][0], '');
 	t.equal(rule.args[0][1], 10);
@@ -36,7 +38,7 @@ test('meta. field rules', t => {
 	const value = { value: '' };
 
 	t.deepEqual(scheme.validate(value, 10).value.errors, [
-		{ type: 'required' }
+		{ type: 'required', data: true }
 	]);
 
 	t.equal(rule.args[0][0], value.value);
@@ -61,7 +63,7 @@ test('meta. nested scheme', t => {
 
 	const value = { value: '' };
 	t.deepEqual(scheme.validate(value, 15).value.errors, [
-		{ type: 'required' }
+		{ type: 'required', data: true }
 	]);
 	t.equal(required.args[0][0], value.value);
 	t.equal(required.args[0][1].data, value);

@@ -6,11 +6,10 @@ export type Rule<D, R, Meta> = Meta extends undefined
 	? (obj: D, meta?: Meta) => R
 	: (obj: D, meta: Meta) => R;
 
-export type RuleError<K, R extends Rule<any, any, any>> = R extends (
-	...args: any[]
-) => boolean
-	? { type: K }
-	: { type: K; error: ReturnType<R> };
+export type RuleError<K, R extends Rule<any, any, any>> = {
+	type: K;
+	data: ReturnType<R>;
+};
 
 export type ObjectRules<T, Meta = undefined> = Record<
 	string,
@@ -432,14 +431,11 @@ export function map<Data, Result, Meta = undefined>(
 					fieldName: name
 				});
 
-				if (res) {
-					hasError = true;
-					return {
-						...prev,
-						[name]: res
-					};
-				}
-				return prev;
+				hasError = !!res || hasError;
+				return {
+					...prev,
+					[name]: res
+				};
 			}, {});
 			return hasError ? result : null;
 		}

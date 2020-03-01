@@ -4,221 +4,229 @@
 
 Library to validate values via simple functions.
 
-## Validate object fields
+## Main advantages
 
-`init` function creates a validation scheme. And then you can set validation rules via `rules` method. You should set rules for properties of object. In this example rules for the `value` property are set.
+-   validation schemas are extendable and can be nested
+-   the easiest way to create new rules or use existed validation functions
+-   a validation result of each nested schemas is placed to a separate field of the full validation result so you can easy separate then in a view
+-   a validation result is not responsible for errors representation. You can show them as you need, for example, in different languages or in a short and a long form for mobile and desktop view
+-   the schema's `validate` method can receive some additional info for validation rules
+-   schema and validation results are fully type checked with minimum efforts
 
-```js
-import { init } from "@megazazik/validate";
+## Schema initialization
 
-// this scheme validates objects of shape {value: string}
-const myScheme = init().rules({
-  value: {
-    required: str => !str,
-    minLenght: str => (str.length <= 8 ? { length: str.length } : false)
-  }
-});
-```
-
-Each rule should return `false`, `undefined` or `null` if data is correct. If data has errors a rule should return `true` or any other value with meta data of error.
-
-A scheme has the `validate` method. It returns `null` if data is correct or an object with errors.
+`init` function creates a validation schema. And then you can set validation rules via `rules` method.
 
 ```js
-myScheme.validate({ value: "" });
-// {value: {required: true}}
+import { init } from '@megazazik/validate';
 
-myScheme.validate({ value: "123" });
-// {value: {minLenght: {length: 3}}}
-
-myScheme.validate({ value: "123456789" });
-// null
-```
-
-You can also get errors of each property as an array of objects with fields `type` and `error`. To do that use a `errors` getter of a validation result prototype.
-
-```js
-myScheme.validate({ value: "" })?.value?.errors;
-// [{type: 'required'}]
-
-myScheme.validate({ value: "123" })?.value?.errors;
-// [{type: 'minLenght', error: {length: 3}]
-
-myScheme.validate({ value: "123456789" })?.value?.errors;
-// null
-```
-
-## Nested schemes
-
-Validation schemes can be nested.
-
-```js
-import { init } from "@megazazik/validate";
-
-const childScheme = init().rules({
-  value: {
-    required: str => !str,
-    minLenght: str => str.length <= 8
-  }
+const schema = init().rules({
+	required: str => !str,
+	minLenght: str => str.length <= 3
 });
 
-const parentScheme = init().rules({
-  child: childScheme
-});
-
-parentScheme.validate({ child: { value: "" } });
-// {child: {value: {required: true}}}
-```
-
-## Rules for a whole object
-
-You can also use `rules` method if you need to validate some primitive value or a whole object.
-
-A primitive value example.
-
-```js
-import { init } from "@megazazik/validate";
-
-const myStringScheme = init().rules({
-  required: str => !str,
-  minLenght: str => str.length <= 8
-});
-
-myStringScheme.validate("");
+schema.validate('');
 // {required: true}
 
-myStringScheme.validate("123");
+schema.validate('12');
 // {minLenght: true}
 
-myStringScheme.validate("123456789");
+schema.validate('1234');
 // null
 ```
 
-A whole object rules example.
+Each rule receives a value for validation and should return `false`, `undefined` or `null` if the value is correct. If the value has errors the rule should return `true` or any other value with meta data of error.
+
+A schema has the `validate` method. It returns `null` if data is correct or an object with errors. Each error is placed in a separate field. Also you can get all errors as an array via `errors` getter of a result prototype.
 
 ```js
-import { init } from "@megazazik/validate";
+schema.validate('').errors;
+// [ {type: 'required', data: true} ]
 
-// this scheme validates objects which look like {value: ''}
-const myObjectScheme = init().rules({
-  value: {
-    required: str => !str,
-    minLenght: str => str.length <= 8
-  },
-  // in this case the valueRequired rule duplicates the 'required' rule from the 'value' property
-  valueRequired: obj => !obj.value
+schema.validate('12').errors;
+// [ {type: 'minLenght', data: true} ]
+```
+
+### Error's metadata
+
+If a rule returns any value which is considered an error, you can get this value in a validation result.
+
+```js
+const schema = init().rules({
+	minLenght: str => str.length <= 3 ? {length: str.length} : false;
 });
 
-const result = myObjectScheme.validate({ value: "" });
-// {valueRequired: true, value: {required: true}}
+schema.validate('12');
+// {minLenght: {length: 2}}
 
-// you can get errors of whole object via errors getter. It DOES NOT contains errors of properties
-console.log(result.errors); // [{type: 'valueRequired'}]
-// errors of property rules can be accessed via its own errors getter
-console.log(result.value.errors); // [ {type: 'required'} ]
+schema.validate('12').errors;
+// [ {type: 'minLenght', data: {length: 2}} ]
+```
 
-const result2 = myObjectScheme.validate({ value: "123" });
-// {value: {minLenght: {length: 3}}}
+## Validate object fields
 
-// if object has no own errors then errors getter returns null
-console.log(result2.errors); // null
-// and errors of property rules can be still accessed via properties
-console.log(result2.value.errors); // [ {type: 'minLenght', error: {length: 3} ]
+You can set separate rules for each field of on object. A scheme in the next example validates values of the following interface
 
-// if object has no own errors, no property errors then the result of validation is null
-myObjectScheme.validate({ value: "123456789" });
+```ts
+interface User {
+	name: string;
+}
+```
+
+You can set rules for the `name` field using the `rules` method.
+
+```js
+const userSchema = init().rules({
+	name: {
+		required: str => !str,
+		minLenght: str => str.length < 3
+	}
+});
+
+userSchema.validate({ name: '' });
+// { name: { required: true } }
+
+userSchema.validate({ name: 'B' });
+// { name: { minLenght: true } }
+
+userSchema.validate({ name: 'Bob' });
 // null
 ```
 
-## Validate array of values
-
-If you have an object with a dynamic array of values you can validate them via the `list` function.
+The `errors` field of entire object validation result DOES NOT contain errors of nested fields. You can access them via nested fields of the result. If you want to check if an entire object validation result has any errors you can check if the result is null.
 
 ```js
-import { init, list } from "@megazazik/validate";
-
-const myStringScheme = init().rules({
-  required: str => !str,
-  minLenght: str => (str.length <= 8 ? { length: str.length } : false)
+const userSchema = init().rules({
+	name: {
+		required: str => !str
+	}
 });
 
-const myObjectScheme = init().rules({
-  // this rule validates an array of strings
-  values: list(stringScheme)
+const result = userSchema.validate({ name: '' });
+
+result; // { name: { required: true } }
+result.errors; // null
+result.name; // { required: true }
+result.name.errors; // [{ type: 'required', data: true }]
+```
+
+## Nested schemas
+
+Validation schemas can be nested.
+
+```js
+const nameSchema = init().rules({
+	required: str => !str
 });
 
-const errors = myObjectScheme.validate({
-  values: ["", "sdfsdf", "123123123"]
+const userSchema = init().rules({
+	name: nameSchema
 });
 
-console.log(errors.values);
+userSchema.validate({ name: '' });
+// { name: { required: true } }
+```
+
+## Validate an array of values
+
+If you have an array of values you can create its validation schema via the `list` function.
+
+```js
+import { init, list } from '@megazazik/validate';
+
+const nameSchema = init().rules({
+	required: str => !str
+});
+
+listSchema = list(stringschema);
+listSchema.validate(['', 'sdfsdf']);
 // [
 //   {required: true},
-//   {minLenght: true},
 //   null
 // ]
 ```
 
-## Validate map of values
-
-If you have an object with a dynamic map of values you can validate them via the `map` function.
+A result of list validation is `null` when all values of the list are valid.
 
 ```js
-import { init, map } from "@megazazik/validate";
+listSchema.validate(['sdf', 'sdfsdf']);
+// null
+```
 
-const myStringScheme = init().rules({
-  required: str => !str,
-  minLenght: str => (str.length <= 8 ? { length: str.length } : false)
+You can add `listSchema` as a child schema to another schema.
+
+```js
+const parent = init().rules({
+	values: listSchema
+});
+```
+
+## Validate a map of values
+
+If you have a dynamic map of values you can create its validation schema via the `map` function.
+
+```js
+import { init, map } from '@megazazik/validate';
+
+const nameSchema = init().rules({
+	required: str => !str
 });
 
-const myObjectScheme = init().rules({
-  // this rule validates an array of strings
-  values: map(stringScheme)
-});
-
-const errors = myObjectScheme.validate({
-  values: { v1: "", v2: "sdfsdf", v3: "123123123" }
-});
-
-console.log(errors.values);
+mapSchema = map(stringschema);
+mapSchema.validate({ v1: '', v2: 'sdfsdf' });
 // {
 //   v1: {required: true},
-//   v2: {minLenght: true}
+//   v2: null
 // }
+```
+
+A result of map validation is `null` when all values of the map are valid.
+
+```js
+mapSchema.validate({ v1: 'asd', v2: 'sdfsdf' });
+// null
+```
+
+You can add `mapSchema` as a child schema to another schema.
+
+```js
+const parent = init().rules({
+	values: mapSchema
+});
 ```
 
 ## Errors of all rules instead of first error
 
-By default the `validate` function returns the first error for each property and the first error of a whole object errors. In this example the `minLenght` rule will not be checked if the `required` rule returns `true`.
+By default the `validate` function returns the first error for each property. In this example the `minLenght` rule will not be checked if the `required` rule returns `true`.
 
 ```js
-import { init } from "@megazazik/validate";
+import { init } from '@megazazik/validate';
 
-const myScheme = init().rules({
-  value: {
-    required: str => !str,
-    minLenght: str => str.length <= 8
-  }
+const mySchema = init().rules({
+	value: {
+		required: str => !str,
+		minLenght: str => str.length <= 8
+	}
 });
 
-myScheme.validate("");
+mySchema.validate('');
 // {required: true}
 ```
 
-If you need to receive all errors of scheme you can use the `allOf` function. Then all rules will be checked and all errors will be returned.
+If you need to receive all errors of schema you can use the `allOf` function. Then all rules will be checked and all errors will be returned.
 
 ```js
-import { init, allOf } from "@megazazik/validate";
+import { init, allOf } from '@megazazik/validate';
 
-const myScheme = init().rules({
-  value: {
-    ...allOf({
-      required: str => !str,
-      minLenght: str => str.length <= 8
-    })
-  }
+const mySchema = init().rules({
+	value: {
+		...allOf({
+			required: str => !str,
+			minLenght: str => str.length <= 8
+		})
+	}
 });
 
-myScheme.validate("");
+mySchema.validate('');
 // {required: true, minLenght: true}
 ```

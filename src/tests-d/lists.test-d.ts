@@ -2,7 +2,7 @@ import { expectType, expectError } from 'tsd';
 import { init, list, map } from '..';
 
 expectType<Array<Readonly<{
-	errors: Array<{ type: 'required' }> | null;
+	errors: Array<{ type: 'required'; data: boolean }> | null;
 	required?: boolean;
 }> | null> | null>(
 	list(
@@ -15,7 +15,7 @@ expectType<Array<Readonly<{
 );
 
 expectType<Array<Readonly<{
-	errors: Array<{ type: 'required' }> | null;
+	errors: Array<{ type: 'required'; data: boolean }> | null;
 	required?: boolean;
 }> | null> | null>(
 	list(
@@ -40,7 +40,7 @@ expectError(
 expectType<Record<
 	string,
 	Readonly<{
-		errors: Array<{ type: 'required' }> | null;
+		errors: Array<{ type: 'required'; data: boolean }> | null;
 		required?: boolean;
 	}> | null
 > | null>(
@@ -56,7 +56,7 @@ expectType<Record<
 expectType<Record<
 	string,
 	Readonly<{
-		errors: Array<{ type: 'required' }> | null;
+		errors: Array<{ type: 'required'; data: boolean }> | null;
 		required?: boolean;
 	}> | null
 > | null>(

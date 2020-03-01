@@ -6,12 +6,15 @@ expectType<Readonly<{
 	errors: Array<
 		| {
 				type: 'required';
+				data: boolean;
 		  }
 		| {
 				type: 'maxLength';
+				data: boolean;
 		  }
 		| {
 				type: 'noType';
+				data: boolean;
 		  }
 	> | null;
 	required?: boolean;
@@ -32,12 +35,15 @@ expectType<Readonly<{
 	errors: Array<
 		| {
 				type: 'required';
+				data: boolean;
 		  }
 		| {
 				type: 'maxLength';
+				data: boolean;
 		  }
 		| {
 				type: 'noType';
+				data: boolean;
 		  }
 	> | null;
 	required?: boolean;
@@ -58,15 +64,15 @@ expectType<Readonly<{
 	errors: Array<
 		| {
 				type: 'required';
-				error: number;
+				data: number;
 		  }
 		| {
 				type: 'maxLength';
-				error: string;
+				data: string;
 		  }
 		| {
 				type: 'noType';
-				error: { data: number };
+				data: { data: number };
 		  }
 	> | null;
 	required?: number;
@@ -89,19 +95,23 @@ expectType<Readonly<{
 		errors: Array<
 			| {
 					type: 'required';
-					error: string;
+					data: string;
 			  }
 			| {
 					type: 'maxLength';
+					data: boolean;
 			  }
 			| {
 					type: 'noType';
+					data: boolean;
 			  }
 			| {
 					type: 'maxLengthFull';
+					data: boolean;
 			  }
 			| {
 					type: 'maxLengthFull2';
+					data: boolean;
 			  }
 		>;
 		required?: string;
@@ -138,13 +148,15 @@ expectType<Readonly<{
 		errors: Array<
 			| {
 					type: 'required';
-					error: string;
+					data: string;
 			  }
 			| {
 					type: 'maxLength';
+					data: boolean;
 			  }
 			| {
 					type: 'noType';
+					data: boolean;
 			  }
 		>;
 		required?: string;
