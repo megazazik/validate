@@ -83,6 +83,21 @@ export type SchemeRules<D, Meta> = Record<
 	  }
 >;
 
+export type CastSchemeMeta<S, NewMeta> = S extends Scheme<
+	infer D,
+	infer R,
+	infer C,
+	infer M
+>
+	? NewMeta extends M
+		? Scheme<D, R, C, NewMeta>
+		: 'New meta type should extend old one'
+	: S extends PrimitiveScheme<infer D, infer R, infer M>
+	? NewMeta extends M
+		? PrimitiveScheme<D, R, NewMeta>
+		: 'New meta type should extend old one'
+	: never;
+
 export interface Scheme<
 	Data,
 	Rules extends ObjectRules<Data, Meta>,

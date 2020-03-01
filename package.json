@@ -31,7 +31,7 @@
     "tape": "^4.13.0",
     "ts-node": "^8.6.2",
     "tsd": "^0.11.0",
-    "typescript": "^3.7.5"
+    "typescript": "^3.8.3"
   },
   "config": {
     "commitizen": {

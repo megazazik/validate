@@ -1,5 +1,5 @@
 import { expectType, expectError } from 'tsd';
-import { init, list, map } from '..';
+import { init, CastSchemeMeta, Scheme, PrimitiveScheme } from '..';
 
 /** Simple value */
 expectType<Readonly<{
@@ -251,4 +251,32 @@ expectType<'Wrong type of rules. Check the following fields:' | 'd'>(
 			req: (v: number) => false
 		}
 	})
+);
+
+expectType<PrimitiveScheme<string, {}, { m1: string; m2: number }>>(
+	(null as unknown) as CastSchemeMeta<
+		PrimitiveScheme<string, {}, { m1: string }>,
+		{ m1: string; m2: number }
+	>
+);
+
+expectType<'New meta type should extend old one'>(
+	(null as unknown) as CastSchemeMeta<
+		PrimitiveScheme<string, {}, { m1: string }>,
+		{ m2: number }
+	>
+);
+
+expectType<Scheme<{}, {}, {}, { m1: string; m2: number }>>(
+	(null as unknown) as CastSchemeMeta<
+		Scheme<{}, {}, {}, { m1: string }>,
+		{ m1: string; m2: number }
+	>
+);
+
+expectType<'New meta type should extend old one'>(
+	(null as unknown) as CastSchemeMeta<
+		Scheme<{}, {}, {}, { m1: string }>,
+		{ m2: number }
+	>
 );

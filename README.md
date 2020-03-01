@@ -22,14 +22,14 @@ import { init } from '@megazazik/validate';
 
 const schema = init().rules({
 	required: str => !str,
-	minLenght: str => str.length <= 3
+	minLength: str => str.length <= 3
 });
 
 schema.validate('');
 // {required: true}
 
 schema.validate('12');
-// {minLenght: true}
+// {minLength: true}
 
 schema.validate('1234');
 // null
@@ -44,7 +44,7 @@ schema.validate('').errors;
 // [ {type: 'required', data: true} ]
 
 schema.validate('12').errors;
-// [ {type: 'minLenght', data: true} ]
+// [ {type: 'minLength', data: true} ]
 ```
 
 ### Error's metadata
@@ -53,19 +53,19 @@ If a rule returns any value which is considered an error, you can get this value
 
 ```js
 const schema = init().rules({
-	minLenght: str => str.length <= 3 ? {length: str.length} : false;
+	minLength: str => str.length <= 3 ? {length: str.length} : false;
 });
 
 schema.validate('12');
-// {minLenght: {length: 2}}
+// {minLength: {length: 2}}
 
 schema.validate('12').errors;
-// [ {type: 'minLenght', data: {length: 2}} ]
+// [ {type: 'minLength', data: {length: 2}} ]
 ```
 
 ## Validate object fields
 
-You can set separate rules for each field of on object. A scheme in the next example validates values of the following interface
+You can set separate rules for each field of on object. A schema in the next example validates values of the following interface
 
 ```ts
 interface User {
@@ -79,7 +79,7 @@ You can set rules for the `name` field using the `rules` method.
 const userSchema = init().rules({
 	name: {
 		required: str => !str,
-		minLenght: str => str.length < 3
+		minLength: str => str.length < 3
 	}
 });
 
@@ -87,7 +87,7 @@ userSchema.validate({ name: '' });
 // { name: { required: true } }
 
 userSchema.validate({ name: 'B' });
-// { name: { minLenght: true } }
+// { name: { minLength: true } }
 
 userSchema.validate({ name: 'Bob' });
 // null
@@ -125,6 +125,24 @@ const userSchema = init().rules({
 
 userSchema.validate({ name: '' });
 // { name: { required: true } }
+```
+
+Any object with the `validate` method can be passed as a field validation schema. These schemas can return any result. `false`, `null` or `undefined` means a data is valid. Any other value is considered an error.
+
+```js
+const nameSchema = {
+	validate: (name: string) => (!!name ? false : 'My custom error')
+};
+
+const userSchema = init().rules({
+	name: nameSchema
+});
+
+userSchema.validate({ name: '' });
+// { name: 'My custom error' }
+
+userSchema.validate({ name: 'Jon' });
+// null
 ```
 
 ## Validate an array of values
@@ -197,7 +215,7 @@ const parent = init().rules({
 
 ## Errors of all rules instead of first error
 
-By default the `validate` function returns the first error for each property. In this example the `minLenght` rule will not be checked if the `required` rule returns `true`.
+By default the `validate` function returns the first error for each property. In this example the `minLength` rule will not be checked if the `required` rule returns `true`.
 
 ```js
 import { init } from '@megazazik/validate';
@@ -205,7 +223,7 @@ import { init } from '@megazazik/validate';
 const mySchema = init().rules({
 	value: {
 		required: str => !str,
-		minLenght: str => str.length <= 8
+		minLength: str => str.length <= 8
 	}
 });
 
@@ -222,11 +240,141 @@ const mySchema = init().rules({
 	value: {
 		...allOf({
 			required: str => !str,
-			minLenght: str => str.length <= 8
+			minLength: str => str.length <= 8
 		})
 	}
 });
 
 mySchema.validate('');
-// {required: true, minLenght: true}
+// {required: true, minLength: true}
+```
+
+## Meta info
+
+Sometimes you need to get some additional information in your validation rules. You can pass this meta info to `validate` method as a second argument and get it inside rules.
+
+### Meta info with simple value validation
+
+In simple schemas you can get meta info as a second argument of rule.
+
+<!-- @todo rewrite example -->
+
+```ts
+// in this example min-length is dynamic and is passed from outside
+const passwordSchema = init<string, { minLength: number }>().rules({
+	required: value => !value,
+	minLength: (value, { minLength }) => value.length < minLength
+});
+
+passwordSchema.validate('somePassword', { minLength: 8 });
+```
+
+### Meta info with field values validation
+
+Sometimes inside rules of object fields you may need to access the entire object and meta info. Because of this second argument of field rules is an object with the following fields:
+
+-   _data_ - entire object
+-   _meta_ - meta info passed to `validate` method
+-   _fieldName_ - name of the current field
+
+```ts
+interface RegistrationData {
+	username: string;
+	password: string;
+	passwordRepeat: string;
+}
+
+const schema = init<RegistrationData, { minLength: number }>().rules({
+	username: {
+		required: name => !name
+	},
+	password: {
+		validate(password, { meta }) {
+			// passwordSchema from the previous example
+			return passwordSchema.validate(password, meta);
+		}
+	},
+	passwordRepeat: {
+		notEqual: (passwordRepeat, { data }) => passwordRepeat !== data.password
+	}
+});
+
+schema.validate(
+	{
+		username: 'Jon',
+		password: '12345',
+		passwordRepeat: '1234'
+	},
+	{ minLength: 8 }
+);
+// {
+//   password: {
+//     minLength: true
+//   },
+//   passwordRepeat: {
+//     notEqual: true
+//   }
+// }
+```
+
+## Extends schema
+
+A schema object is immutable. Each time you call the `rules` method a new schema is created. You can add new rules to an existing schema.
+
+```js
+import { required, minLength } from './rules'; // some implementations of rules
+
+const schema = init()
+	.rules({ required })
+	.rules({ minLength });
+```
+
+You can not extends an object's field rules by this way. The previous rules of the field will be overridden. If you want to do that you can use the second form of the `rules` method. It receive a function instead of an object. This function receive old rules of the schema and should return new ones. You don't need to return all old rules, only new ones. The old rules are the same values which are returned by `getRules` method of schema.
+
+```js
+import { required, minLength } from './rules'; // some implementations of rules
+
+const userSchema = init().rules({
+	name: {
+		required
+	},
+	password: {
+		required
+	}
+});
+
+// ...
+
+const extenedUserSchema = userSchema.rules(childRules => ({
+	password: childRules.password.rules({
+		minLength
+	})
+}));
+```
+
+### getRules
+
+If you need to get all rules of some schema for any reasons you can use the `getRules` method. It returns an object with all rules and nested schemas which were defined previously.
+
+```js
+const schema = init().rules({
+	someRule: v => {
+		/* ... */
+	},
+	name: {
+		required: v => !!v
+	}
+});
+
+const oldRules = schema.getRules();
+// {
+//   someRule: <function>,
+//   name: <child schema>
+// }
+
+// you can use them to create new schema
+const newSchema = init().rules(
+	// some improvements of rules
+	modifyRules(oldRules)
+);
 ```
