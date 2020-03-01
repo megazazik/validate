@@ -3,15 +3,17 @@
   "version": "0.6.0",
   "description": "Validate objects via simple functions",
   "main": "dist/index.js",
-  "module": "dist/index.js",
+  "module": "dist-es/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc && tsc -p tsconfig.es.json",
-    "version": "npm run build && conventional-changelog -p angular -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
+    "build": "tsc -p tsconfig.cjs.json  && tsc -p tsconfig.es.json",
+    "version": "npm run test && npm run build && conventional-changelog -p angular -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
     "commit": "git-cz",
-    "test": "sh default -d src/**/*.spec.* -c tape",
+    "test": "npm run unit-test && npm run type-test",
+    "unit-test": "sh default -d \"src/**/*.spec.*\" -c tape",
+    "type-test": "tsd",
     "tape": "ts-node node_modules/tape/bin/tape",
-    "test-w": "nodemon -e js,jsx,ts,tsx,json --exec npm run test"
+    "w": "nodemon -e js,jsx,ts,tsx,json --exec npm run"
   },
   "keywords": [
     "validate",
@@ -20,13 +22,16 @@
   "author": "lebedev.mv <lebedev.mv@tutu.ru>",
   "license": "MIT",
   "devDependencies": {
-    "@types/tape": "^4.2.33",
+    "@types/sinon": "^7.5.1",
+    "@types/tape": "^4.2.34",
     "commitizen": "^4.0.3",
-    "conventional-changelog-cli": "^2.0.25",
-    "cz-conventional-changelog": "^3.0.2",
-    "tape": "^4.11.0",
-    "ts-node": "^8.4.1",
-    "typescript": "^3.7.4"
+    "conventional-changelog-cli": "^2.0.31",
+    "cz-conventional-changelog": "^3.1.0",
+    "sinon": "^8.1.1",
+    "tape": "^4.13.0",
+    "ts-node": "^8.6.2",
+    "tsd": "^0.11.0",
+    "typescript": "^3.8.3"
   },
   "config": {
     "commitizen": {
@@ -40,8 +45,20 @@
   "homepage": "https://github.com/megazazik/validate",
   "files": [
     "dist",
+    "dist/index.d.ts",
     "dist-es",
     "CHANGELOG.md",
     "README.md"
-  ]
+  ],
+  "tsd": {
+    "directory": "src/tests-d",
+    "compilerOptions": {
+      "strict": false,
+      "noImplicitAny": true,
+      "noImplicitReturns": true,
+      "noImplicitThis": true,
+      "strictNullChecks": true
+    }
+  },
+  "dependencies": {}
 }
