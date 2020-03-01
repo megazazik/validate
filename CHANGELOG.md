@@ -1,3 +1,17 @@
+# [0.7.0](https://github.com/megazazik/validate/compare/v0.6.0...v0.7.0) (2020-03-01)
+
+
+### Features
+
+* add meta info, add getRules method, add second form of rules method, rename error to data ([88fc526](https://github.com/megazazik/validate/commit/88fc52690fc8a6a1cae57e83194141eb46c7ea73))
+
+
+### BREAKING CHANGES
+
+* rename error field to data in validation result
+
+
+
 # [0.6.0](https://github.com/megazazik/validate/compare/v0.5.0...v0.6.0) (2019-12-24)
 
 
