@@ -1,3 +1,12 @@
+# [0.8.0](https://github.com/megazazik/validate/compare/v0.7.0...v0.8.0) (2024-01-20)
+
+
+### Features
+
+* **types:** add support of typescript@5 ([73e9d4e](https://github.com/megazazik/validate/commit/73e9d4ec1f90fa7a29da3190c47baa6211e3f784))
+
+
+
 # [0.7.0](https://github.com/megazazik/validate/compare/v0.6.0...v0.7.0) (2020-03-01)
 
 
@@ -123,8 +132,8 @@ errors field. But if you use tests, they may fail because of new fields in the v
 
 ### Bug Fixes
 
-* **package.json:** add module field, add types field ([82662e0](https://github.com/megazazik/validate/commit/82662e0e6ed51cbb333b69de9edb298e5644c7b7))
 * filter empty results in map function, add docs ([18ce317](https://github.com/megazazik/validate/commit/18ce3174b324221ea88f6e957f9ae08f5203de60))
+* **package.json:** add module field, add types field ([82662e0](https://github.com/megazazik/validate/commit/82662e0e6ed51cbb333b69de9edb298e5644c7b7))
 
 
 ### Features
