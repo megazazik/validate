@@ -13,6 +13,8 @@ Library to validate values via simple functions.
 -   the schema's `validate` method can receive some additional info for validation rules
 -   schema and validation results are fully type checked with minimum efforts
 
+Known issues: there are wrong behavior of types when the typescript option "strictFunctionTypes" is enabled.
+
 ## Schema initialization
 
 `init` function creates a validation schema. And then you can set validation rules via `rules` method.
@@ -21,8 +23,8 @@ Library to validate values via simple functions.
 import { init } from '@megazazik/validate';
 
 const schema = init().rules({
-	required: str => !str,
-	minLength: str => str.length <= 3
+	required: (str) => !str,
+	minLength: (str) => str.length <= 3,
 });
 
 schema.validate('');
@@ -78,9 +80,9 @@ You can set rules for the `name` field using the `rules` method.
 ```js
 const userSchema = init().rules({
 	name: {
-		required: str => !str,
-		minLength: str => str.length < 3
-	}
+		required: (str) => !str,
+		minLength: (str) => str.length < 3,
+	},
 });
 
 userSchema.validate({ name: '' });
@@ -98,8 +100,8 @@ The `errors` field of entire object validation result DOES NOT contain errors of
 ```js
 const userSchema = init().rules({
 	name: {
-		required: str => !str
-	}
+		required: (str) => !str,
+	},
 });
 
 const result = userSchema.validate({ name: '' });
@@ -116,11 +118,11 @@ Validation schemas can be nested.
 
 ```js
 const nameSchema = init().rules({
-	required: str => !str
+	required: (str) => !str,
 });
 
 const userSchema = init().rules({
-	name: nameSchema
+	name: nameSchema,
 });
 
 userSchema.validate({ name: '' });
@@ -131,11 +133,11 @@ Any object with the `validate` method can be passed as a field validation schema
 
 ```js
 const nameSchema = {
-	validate: (name: string) => (!!name ? false : 'My custom error')
+	validate: (name: string) => (!!name ? false : 'My custom error'),
 };
 
 const userSchema = init().rules({
-	name: nameSchema
+	name: nameSchema,
 });
 
 userSchema.validate({ name: '' });
@@ -153,7 +155,7 @@ If you have an array of values you can create its validation schema via the `lis
 import { init, list } from '@megazazik/validate';
 
 const nameSchema = init().rules({
-	required: str => !str
+	required: (str) => !str,
 });
 
 listSchema = list(stringschema);
@@ -175,7 +177,7 @@ You can add `listSchema` as a child schema to another schema.
 
 ```js
 const parent = init().rules({
-	values: listSchema
+	values: listSchema,
 });
 ```
 
@@ -187,7 +189,7 @@ If you have a dynamic map of values you can create its validation schema via the
 import { init, map } from '@megazazik/validate';
 
 const nameSchema = init().rules({
-	required: str => !str
+	required: (str) => !str,
 });
 
 mapSchema = map(stringschema);
@@ -209,7 +211,7 @@ You can add `mapSchema` as a child schema to another schema.
 
 ```js
 const parent = init().rules({
-	values: mapSchema
+	values: mapSchema,
 });
 ```
 
@@ -222,9 +224,9 @@ import { init } from '@megazazik/validate';
 
 const mySchema = init().rules({
 	value: {
-		required: str => !str,
-		minLength: str => str.length <= 8
-	}
+		required: (str) => !str,
+		minLength: (str) => str.length <= 8,
+	},
 });
 
 mySchema.validate('');
@@ -239,10 +241,10 @@ import { init, allOf } from '@megazazik/validate';
 const mySchema = init().rules({
 	value: {
 		...allOf({
-			required: str => !str,
-			minLength: str => str.length <= 8
-		})
-	}
+			required: (str) => !str,
+			minLength: (str) => str.length <= 8,
+		}),
+	},
 });
 
 mySchema.validate('');
@@ -262,8 +264,8 @@ In simple schemas you can get meta info as a second argument of rule.
 ```ts
 // in this example min-length is dynamic and is passed from outside
 const passwordSchema = init<string, { minLength: number }>().rules({
-	required: value => !value,
-	minLength: (value, { minLength }) => value.length < minLength
+	required: (value) => !value,
+	minLength: (value, { minLength }) => value.length < minLength,
 });
 
 passwordSchema.validate('somePassword', { minLength: 8 });
@@ -286,24 +288,25 @@ interface RegistrationData {
 
 const schema = init<RegistrationData, { minLength: number }>().rules({
 	username: {
-		required: name => !name
+		required: (name) => !name,
 	},
 	password: {
 		validate(password, { meta }) {
 			// passwordSchema from the previous example
 			return passwordSchema.validate(password, meta);
-		}
+		},
 	},
 	passwordRepeat: {
-		notEqual: (passwordRepeat, { data }) => passwordRepeat !== data.password
-	}
+		notEqual: (passwordRepeat, { data }) =>
+			passwordRepeat !== data.password,
+	},
 });
 
 schema.validate(
 	{
 		username: 'Jon',
 		password: '12345',
-		passwordRepeat: '1234'
+		passwordRepeat: '1234',
 	},
 	{ minLength: 8 }
 );
@@ -324,9 +327,7 @@ A schema object is immutable. Each time you call the `rules` method a new schema
 ```js
 import { required, minLength } from './rules'; // some implementations of rules
 
-const schema = init()
-	.rules({ required })
-	.rules({ minLength });
+const schema = init().rules({ required }).rules({ minLength });
 ```
 
 You can not extends an object's field rules by this way. The previous rules of the field will be overridden. If you want to do that you can use the second form of the `rules` method. It receive a function instead of an object. This function receive old rules of the schema and should return new ones. You don't need to return all old rules, only new ones. The old rules are the same values which are returned by `getRules` method of schema.
@@ -336,19 +337,19 @@ import { required, minLength } from './rules'; // some implementations of rules
 
 const userSchema = init().rules({
 	name: {
-		required
+		required,
 	},
 	password: {
-		required
-	}
+		required,
+	},
 });
 
 // ...
 
-const extenedUserSchema = userSchema.rules(childRules => ({
+const extenedUserSchema = userSchema.rules((childRules) => ({
 	password: childRules.password.rules({
-		minLength
-	})
+		minLength,
+	}),
 }));
 ```
 
@@ -358,12 +359,12 @@ If you need to get all rules of some schema for any reasons you can use the `get
 
 ```js
 const schema = init().rules({
-	someRule: v => {
+	someRule: (v) => {
 		/* ... */
 	},
 	name: {
-		required: v => !!v
-	}
+		required: (v) => !!v,
+	},
 });
 
 const oldRules = schema.getRules();
