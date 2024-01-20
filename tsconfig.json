@@ -10,6 +10,7 @@
 		"esModuleInterop": true,
 		"noImplicitAny": true,
 		"noImplicitReturns": true,
-		"noImplicitThis": true
+		"noImplicitThis": true,
+		"strict": false
 	}
 }

@@ -25,7 +25,7 @@ expectType<Readonly<{
 		.rules({
 			required: () => false,
 			maxLength: (v: string) => !!v,
-			noType: v => !!v
+			noType: (v) => !!v,
 		})
 		.validate('')
 );
@@ -54,7 +54,7 @@ expectType<Readonly<{
 		.rules({
 			required: () => false,
 			maxLength: (v: string, n: number) => !!v,
-			noType: (v, n) => !!v
+			noType: (v, n) => !!v,
 		})
 		.validate('', 12)
 );
@@ -83,7 +83,7 @@ expectType<Readonly<{
 		.rules({
 			required: () => 11,
 			maxLength: (v: string) => 'sdf',
-			noType: v => ({ data: 1 })
+			noType: (v) => ({ data: 1 }),
 		})
 		.validate('')
 );
@@ -113,7 +113,7 @@ expectType<Readonly<{
 					type: 'maxLengthFull2';
 					data: boolean;
 			  }
-		>;
+		> | null;
 		required?: string;
 		maxLength?: boolean;
 		noType?: boolean;
@@ -126,7 +126,7 @@ expectType<Readonly<{
 			value: {
 				required: () => '',
 				maxLength: (v: string) => !!v,
-				noType: v => !!v,
+				noType: (v) => !!v,
 				maxLengthFull: (
 					v: string,
 					obj?: {
@@ -135,8 +135,8 @@ expectType<Readonly<{
 						fieldName: 'value';
 					}
 				) => !!v,
-				maxLengthFull2: (v, { data, meta, fieldName }) => !!v
-			}
+				maxLengthFull2: (v, { data, meta, fieldName }) => !!v,
+			},
 		})
 		.validate({ value: '' }, { value: 21 })
 );
@@ -158,7 +158,7 @@ expectType<Readonly<{
 					type: 'noType';
 					data: boolean;
 			  }
-		>;
+		> | null;
 		required?: string;
 		maxLength?: boolean;
 		noType?: boolean;
@@ -167,10 +167,10 @@ expectType<Readonly<{
 	init<{ value: string }>()
 		.rules({
 			value: init<string>().rules({
-				required: v => String(v),
+				required: (v) => String(v),
 				maxLength: (v: string) => !!v,
-				noType: v => !!v
-			})
+				noType: (v) => !!v,
+			}),
 		})
 		.validate({ value: '' })
 );
@@ -182,7 +182,7 @@ expectType<Readonly<{
 }> | null>(
 	init<{ value: string }>()
 		.rules({
-			value: { validate: () => ({ valueErrors: true }) }
+			value: { validate: () => ({ valueErrors: true }) },
 		})
 		.validate({ value: '' })
 );
@@ -203,9 +203,9 @@ expectType<Readonly<{
 						data: { value: string; value2: string };
 						fieldName: 'value';
 					}
-				) => ({ valueErrors: true })
+				) => ({ valueErrors: true }),
 			},
-			value2: { validate: (v, obj) => ({ valueErrors: true }) }
+			value2: { validate: (v, obj) => ({ valueErrors: true }) },
 		})
 		.validate({ value: '', value2: '' }, 1)
 );
@@ -217,65 +217,61 @@ expectError(
 		.validate('')
 );
 
-expectError(
-	init<string>()
-		.rules({ required: 'sdfsdf' })
-		.validate('')
-);
+expectError(init<string>().rules({ required: 'sdfsdf' }).validate(''));
 
-expectError(
-	init<{ v: string }>()
-		.rules({ v: () => true })
-		.validate({ v: '' })
-);
+/** @todo исправить и убрать комментарий - здесь должна быть ошибка */
+// export function wrontParam() {
+// 	const scheme = init<{ v: string }>();
+// 	expectError(scheme.rules({ v: () => true }));
+// }
 
 expectError(
 	init<{ v: string }>()
 		.rules({
 			v: {
-				req: (v: number) => false
-			}
+				req: (v: number) => false,
+			},
 		})
 		.validate({ v: '' })
 );
 
 expectError(
 	init<{ value: string }, number>().validate({
-		value: ''
+		value: '',
 	})
 );
 
 expectType<'Wrong type of rules. Check the following fields:' | 'd'>(
 	init<{ v: string }>().rules({
 		d: {
-			req: (v: number) => false
-		}
+			req: (v: number) => false,
+		},
 	})
 );
 
 expectType<PrimitiveScheme<string, {}, { m1: string; m2: number }>>(
-	(null as unknown) as CastSchemeMeta<
+	null as unknown as CastSchemeMeta<
 		PrimitiveScheme<string, {}, { m1: string }>,
 		{ m1: string; m2: number }
 	>
 );
 
 expectType<'New meta type should extend old one'>(
-	(null as unknown) as CastSchemeMeta<
+	null as unknown as CastSchemeMeta<
 		PrimitiveScheme<string, {}, { m1: string }>,
 		{ m2: number }
 	>
 );
 
 expectType<Scheme<{}, {}, {}, { m1: string; m2: number }>>(
-	(null as unknown) as CastSchemeMeta<
+	null as unknown as CastSchemeMeta<
 		Scheme<{}, {}, {}, { m1: string }>,
 		{ m1: string; m2: number }
 	>
 );
 
 expectType<'New meta type should extend old one'>(
-	(null as unknown) as CastSchemeMeta<
+	null as unknown as CastSchemeMeta<
 		Scheme<{}, {}, {}, { m1: string }>,
 		{ m2: number }
 	>

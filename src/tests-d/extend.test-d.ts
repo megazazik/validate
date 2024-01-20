@@ -7,7 +7,7 @@ expectType<{
 }>(
 	init<string>()
 		.rules({
-			required: () => false
+			required: () => false,
 		})
 		.getRules()
 );
@@ -24,8 +24,8 @@ expectAssignable<{
 	init<{ value: string }, { value: number }>()
 		.rules({
 			value: {
-				required: v => ''
-			}
+				required: (v) => '',
+			},
 		})
 		.getRules()
 );
@@ -47,10 +47,10 @@ expectType<Readonly<{
 }> | null>(
 	init<string>()
 		.rules({
-			required: () => false
+			required: () => false,
 		})
 		.rules({
-			maxLength: (v: string) => !!v
+			maxLength: (v: string) => !!v,
 		})
 		.validate('')
 );
@@ -72,7 +72,7 @@ expectType<Readonly<{
 					type: 'maxLength';
 					data: boolean;
 			  }
-		>;
+		> | null;
 		required?: string;
 		maxLength?: boolean;
 	}> | null;
@@ -81,13 +81,13 @@ expectType<Readonly<{
 		.rules({
 			required: () => '',
 			value: {
-				required: (v, m) => ''
-			}
+				required: (v, m) => '',
+			},
 		})
-		.rules(rules => ({
+		.rules((rules) => ({
 			value: rules.value.rules({
-				maxLength: (v, m: { meta: { value: number } }) => !!v
-			})
+				maxLength: (v, m: { meta: { value: number } }) => !!v,
+			}),
 		}))
 		.validate({ value: '' }, { value: 21 })
 );
@@ -97,13 +97,13 @@ expectError(
 		.rules({
 			required: () => '',
 			value: {
-				required: (v, m) => ''
-			}
+				required: (v, m) => '',
+			},
 		})
-		.rules(rules => ({
+		.rules((rules) => ({
 			value: rules.value.rules({
-				maxLength: (v, m: { meta: { value: string } }) => !!v
-			})
+				maxLength: (v, m: { meta: { value: string } }) => !!v,
+			}),
 		}))
 		.validate({ value: '' }, { value: 21 })
 );
@@ -111,9 +111,9 @@ expectError(
 expectError(
 	init<{ value: string }, { value: number }>()
 		.rules({
-			value: { validate: () => false }
+			value: { validate: () => false },
 		})
 		.rules(({ value }) => ({
-			value: value.rules({})
+			value: value.rules({}),
 		}))
 );

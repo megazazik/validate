@@ -2,15 +2,15 @@ import test from 'tape';
 import { spy } from 'sinon';
 import { init, allOf, list, map } from '..';
 
-test('meta. own rule', t => {
+test('meta. own rule', (t) => {
 	const rule = spy((value: string, meta: any) => !value);
 
 	const scheme = init<string, number>().rules({
-		required: rule
+		required: rule,
 	});
 
 	t.deepEqual(scheme.validate('', 10).errors, [
-		{ type: 'required', data: true }
+		{ type: 'required', data: true },
 	]);
 
 	t.equal(rule.args[0][0], '');
@@ -21,7 +21,7 @@ test('meta. own rule', t => {
 	t.end();
 });
 
-test('meta. field rules', t => {
+test('meta. field rules', (t) => {
 	const rule = spy(
 		(
 			value: string,
@@ -31,14 +31,14 @@ test('meta. field rules', t => {
 
 	const scheme = init<{ value: string }, number>().rules({
 		value: {
-			required: rule
-		}
+			required: rule,
+		},
 	});
 
 	const value = { value: '' };
 
 	t.deepEqual(scheme.validate(value, 10).value.errors, [
-		{ type: 'required', data: true }
+		{ type: 'required', data: true },
 	]);
 
 	t.equal(rule.args[0][0], value.value);
@@ -51,19 +51,19 @@ test('meta. field rules', t => {
 	t.end();
 });
 
-test('meta. nested scheme', t => {
+test('meta. nested scheme', (t) => {
 	const required = spy((v: string, meta: any) => !v);
 	const stringScheme = init<string, { fieldName: string }>().rules({
-		required
+		required,
 	});
 
 	const scheme = init<{ value: string }, number>().rules({
-		value: stringScheme
+		value: stringScheme,
 	});
 
 	const value = { value: '' };
 	t.deepEqual(scheme.validate(value, 15).value.errors, [
-		{ type: 'required', data: true }
+		{ type: 'required', data: true },
 	]);
 	t.equal(required.args[0][0], value.value);
 	t.equal(required.args[0][1].data, value);
@@ -75,14 +75,14 @@ test('meta. nested scheme', t => {
 	t.end();
 });
 
-test('meta. nested scheme. without meta', t => {
+test('meta. nested scheme. without meta', (t) => {
 	const required = spy((v: string, meta: any) => !v);
 	const stringScheme = init<string, { fieldName: string }>().rules({
-		required
+		required,
 	});
 
 	const scheme = init<{ value: string }>().rules({
-		value: stringScheme
+		value: stringScheme,
 	});
 
 	const value = { value: '' };
@@ -98,11 +98,11 @@ test('meta. nested scheme. without meta', t => {
 	t.end();
 });
 
-test('meta. nested scheme. own implementation', t => {
+test('meta. nested scheme. own implementation', (t) => {
 	const required = spy((v: string, meta: any) => !v);
 
 	const scheme = init<{ value: string }, number>().rules({
-		value: { validate: required }
+		value: { validate: required },
 	});
 
 	const value = { value: '' };
@@ -117,7 +117,7 @@ test('meta. nested scheme. own implementation', t => {
 	t.end();
 });
 
-test('meta. allof. own rules', t => {
+test('meta. allof. own rules', (t) => {
 	const rule1 = spy((...args) => false);
 	const rule2 = spy((...args) => false);
 
@@ -125,7 +125,7 @@ test('meta. allof. own rules', t => {
 		allOf({
 			rule1,
 			rule2,
-			rule3: (v: string, d: number) => false
+			rule3: (v: string, d: number) => false,
 		})
 	);
 
@@ -140,7 +140,7 @@ test('meta. allof. own rules', t => {
 	t.end();
 });
 
-test('meta. allof. field rules', t => {
+test('meta. allof. field rules', (t) => {
 	const rule1 = spy((...args) => false);
 	const rule2 = spy((...args) => false);
 
@@ -148,8 +148,8 @@ test('meta. allof. field rules', t => {
 		value: allOf({
 			rule1,
 			rule2,
-			rule3: (v, d) => false
-		})
+			rule3: (v, d) => false,
+		}),
 	});
 
 	const value = { value: '' };
@@ -168,9 +168,9 @@ test('meta. allof. field rules', t => {
 	t.end();
 });
 
-test('meta. list', t => {
+test('meta. list', (t) => {
 	const scheme = {
-		validate: spy((data: string, meta: any) => false)
+		validate: spy((data: string, meta: any) => false),
 	};
 
 	const data = ['', 'sdfsdf', '123123123'];
@@ -194,9 +194,9 @@ test('meta. list', t => {
 	t.end();
 });
 
-test('meta. map', t => {
+test('meta. map', (t) => {
 	const scheme = {
-		validate: spy((data: string, meta: any) => false)
+		validate: spy((data: string, meta: any) => false),
 	};
 
 	const data = { p1: '', p2: 'sdfsdf', p3: '123123123' };

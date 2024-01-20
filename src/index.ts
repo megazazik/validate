@@ -32,10 +32,8 @@ type ChildMeta<T, Meta> = {
 	fieldName: keyof T;
 };
 
-type ChildrenRules<T, Meta> = {
-	[F in keyof T]?:
-		| ValidationScheme<T[F], any, ChildMeta<T, Meta>>
-		| ObjectRules<T[F], ChildMeta<T, Meta>>;
+type ChildrenRules<T, Meta, CM = ChildMeta<T, Meta>> = {
+	[F in keyof T]?: ValidationScheme<T[F], any, CM> | ObjectRules<T[F], CM>;
 };
 
 type ObjectRulesNames<D, C extends SchemeRules<D, any>> = {
@@ -46,9 +44,9 @@ type ChildRulesNames<D, C extends SchemeRules<D, any>> = {
 	[F in keyof C]: F extends keyof D ? F : never;
 }[keyof C];
 
-type CheckIfEmptyKeys<Keys, Success, Wrong> = Wrong extends (Keys extends never
-	? Success
-	: Wrong)
+type CheckIfEmptyKeys<Keys, Success, Wrong> = Wrong extends (
+	Keys extends never ? Success : Wrong
+)
 	? Wrong
 	: Success;
 
@@ -70,8 +68,9 @@ export type ValidationResult<
 	Children extends { [F in keyof Data]?: ValidationScheme<Data[F], any, any> }
 > = null | Readonly<
 	ChildResult<Children> &
-		ErrorsOf<RulesErrors<any, Rules>> &
-		{ [R in keyof Rules]?: ReturnType<Rules[R]> }
+		ErrorsOf<RulesErrors<any, Rules>> & {
+			[R in keyof Rules]?: ReturnType<Rules[R]>;
+		}
 >;
 
 export type SchemeRules<D, Meta> = Record<
@@ -109,8 +108,7 @@ export interface Scheme<
 		>;
 	} = {},
 	Meta = undefined
->
-	extends ValidationScheme<
+> extends ValidationScheme<
 		Data,
 		ValidationResult<Data, Rules, Children>,
 		Meta
@@ -125,7 +123,13 @@ export interface Scheme<
 			Children &
 				ChildrenSchemes<
 					Data,
-					Pick<C, ChildRulesNames<Data, C>>,
+					Pick<C, ChildRulesNames<Data, C>> extends ChildrenRules<
+						any,
+						any,
+						any
+					>
+						? Pick<C, ChildRulesNames<Data, C>>
+						: never,
 					ChildMeta<Data, Meta>
 				>,
 			Meta
@@ -143,7 +147,13 @@ export interface Scheme<
 			Children &
 				ChildrenSchemes<
 					Data,
-					Pick<C, ChildRulesNames<Data, C>>,
+					Pick<C, ChildRulesNames<Data, C>> extends ChildrenRules<
+						any,
+						any,
+						any
+					>
+						? Pick<C, ChildRulesNames<Data, C>>
+						: never,
 					ChildMeta<Data, Meta>
 				>,
 			Meta
@@ -216,9 +226,8 @@ export type RulesOfScheme<S extends Scheme<any, any, any>> = S extends Scheme<
 	? R
 	: never;
 
-export type ChildrenOfScheme<
-	S extends Scheme<any, any, any>
-> = S extends Scheme<any, any, infer R> ? R : never;
+export type ChildrenOfScheme<S extends Scheme<any, any, any>> =
+	S extends Scheme<any, any, infer R> ? R : never;
 
 class Builder<
 	Data,
@@ -231,7 +240,8 @@ class Builder<
 		>;
 	} = {},
 	Meta = undefined
-> implements Scheme<Data, Rules, Children, Meta> {
+> implements Scheme<Data, Rules, Children, Meta>
+{
 	constructor(private _fullObjectRules: Rules, private _rules: Children) {}
 
 	rules<C extends SchemeRules<Data, Meta>>(
@@ -253,7 +263,7 @@ class Builder<
 						? (childrenRules as any)[propertyName]
 						: init<object>().rules(
 								(childrenRules as any)[propertyName]
-						  )
+						  ),
 			}),
 			{}
 		);
@@ -280,13 +290,13 @@ class Builder<
 		const errors: any = new Result(ownRulesErrors || {});
 
 		if (args[0] != null) {
-			Object.keys(this._rules).forEach(key => {
+			Object.keys(this._rules).forEach((key) => {
 				const res = (this._rules as any)[key].validate(
 					(args[0] as any)[key],
 					{
 						data: args[0],
 						meta: args[1],
-						fieldName: key
+						fieldName: key,
 					}
 				);
 				if (res) {
@@ -329,13 +339,13 @@ export function validateRules<D, Meta = undefined>(
 ) {
 	let errors: any = null;
 
-	Object.keys(rules).find(key => {
+	Object.keys(rules).find((key) => {
 		if ((rules[key] as any).isAllOfFlag === isAllOfFlag) {
 			const allOfRules = rules[key](data, meta);
 
 			const allErrors: any = {};
 			let hasError = false;
-			Object.keys(allOfRules).forEach(ruleKey => {
+			Object.keys(allOfRules).forEach((ruleKey) => {
 				const res = allOfRules[ruleKey](data, meta);
 				if (res === false || res == null) {
 					return;
@@ -407,15 +417,15 @@ export function list<Data, Result, Meta = undefined>(
 				const res = scheme.validate(d, {
 					meta: args[1],
 					data: args[0],
-					index
+					index,
 				});
 				if (res) {
 					hasError = true;
 				}
 				return res;
 			});
-			return hasError ? result : null;
-		}
+			return hasError ? (result as any) : null;
+		},
 	};
 }
 
@@ -443,17 +453,17 @@ export function map<Data, Result, Meta = undefined>(
 				const res = scheme.validate(args[0][name], {
 					meta: args[1],
 					data: args[0],
-					fieldName: name
+					fieldName: name,
 				});
 
 				hasError = !!res || hasError;
 				return {
 					...prev,
-					[name]: res
+					[name]: res,
 				};
 			}, {});
 			return hasError ? result : null;
-		}
+		},
 	};
 }
 
@@ -475,6 +485,6 @@ export function passMeta<Data, Result, Meta>(
 				data,
 				typeof key === 'string' ? meta?.[key] : key(meta)
 			);
-		}
+		},
 	};
 }
