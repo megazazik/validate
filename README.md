@@ -13,7 +13,7 @@ Library to validate values via simple functions.
 -   the schema's `validate` method can receive some additional info for validation rules
 -   schema and validation results are fully type checked with minimum efforts
 
-Known issues: there are wrong behavior of types when the typescript option "strictFunctionTypes" is enabled.
+Known issues: there is wrong behavior of types when the typescript option "strictFunctionTypes" is enabled.
 
 ## Schema initialization
 
